@@ -168,6 +168,35 @@ main { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; min-height: 80vh; 
 .styled-select:focus { outline: none; border-color: var(--primary-color); }
 
 /* --- Genre Filter Chips --- */
+/* --- Shelf tabs, My Shelf only --- */
+/* Squared letterpress tabs sitting on a double rule, active one hung on the
+   rule itself. Cinzel carries no lowercase, so uppercase is set here. */
+.shelf-tabs {
+    display: flex; flex-wrap: wrap; margin-bottom: 1.75rem;
+    border-bottom: 2px solid var(--rule-color);
+}
+.shelf-tab {
+    background: transparent; border: none; border-bottom: 2px solid transparent;
+    margin-bottom: -2px; padding: 0.7rem 1.4rem 0.62rem; cursor: pointer;
+    font-family: var(--font-display); font-size: 0.8rem; line-height: 1;
+    text-transform: uppercase; letter-spacing: 2.4px; color: var(--text-muted);
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    transition: color 0.4s ease, border-color 0.5s ease;
+}
+.shelf-tab:hover { color: var(--primary-color); }
+.shelf-tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+.shelf-tab:focus-visible { outline: 2px solid var(--accent-color); outline-offset: -2px; }
+.tab-count {
+    font-family: var(--font-body); font-size: 0.6rem; font-weight: 600;
+    letter-spacing: 0.6px; line-height: 1; padding: 0.2rem 0.45rem;
+    border: 1px solid var(--rule-color); color: var(--text-muted);
+    transition: color 0.4s ease, border-color 0.5s ease;
+}
+.shelf-tab.active .tab-count { border-color: var(--primary-color); color: var(--primary-color); }
+
+/* The empty state can carry an action button now, so give it room. */
+.empty-state .btn { margin-top: 1.75rem; }
+
 .genre-filters { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.75rem; }
 .filter-chip {
     padding: 0.5rem 1.2rem; border-radius: 0;

@@ -68,6 +68,24 @@
                 </div>
             </div>
 
+            <!-- Shelf Tabs. My Shelf only. Saved is the base list; Reading and
+                 Finished are that same list split by scroll progress, so the
+                 three counts always add up and nothing is filed by hand. -->
+            <div class="shelf-tabs hidden" id="shelf-tabs" role="tablist" aria-label="Shelf sections">
+                <button class="shelf-tab active" data-shelf="saved" role="tab" aria-selected="true"
+                        onclick="selectShelf('saved')">
+                    Saved <span class="tab-count">0</span>
+                </button>
+                <button class="shelf-tab" data-shelf="reading" role="tab" aria-selected="false"
+                        onclick="selectShelf('reading')">
+                    Reading <span class="tab-count">0</span>
+                </button>
+                <button class="shelf-tab" data-shelf="finished" role="tab" aria-selected="false"
+                        onclick="selectShelf('finished')">
+                    Finished <span class="tab-count">0</span>
+                </button>
+            </div>
+
             <!-- Toolbar -->
             <div class="library-toolbar">
                 <div class="search-wrapper">
@@ -86,7 +104,7 @@
             <!-- Genre Filter Chips -->
             <div class="genre-filters" id="genre-filters"></div>
 
-            <div class="results-count" id="results-count">Showing 30 books</div>
+            <div class="results-count" id="results-count">Showing 42 books</div>
             
             <div class="book-grid" id="book-grid"></div>
         </section>

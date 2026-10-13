@@ -172,6 +172,10 @@ let currentGenre = 'All';
 let currentSearch = '';
 let currentSort = 'default';
 let showingBookshelf = false;
+// Which shelf tab is showing. The shelf is a view of the favourites list, not
+// a second list of its own, so Saved is the base and Reading/Finished are that
+// same list split by scroll progress.
+let currentShelf = 'saved';
 // Updated key for Howell Reads
 let favorites = JSON.parse(localStorage.getItem('howell-reads-favorites')) || [];
 // Reading history: most recent first, used by the dashboard
@@ -184,16 +188,115 @@ let ratings = JSON.parse(localStorage.getItem('howell-reads-ratings')) || {};
 // --- Initialize Data ---
 function initializeData() {
     allBooks = [...books];
+    renderSortOptions();
     generateGenreFilters();
     renderBooks();
 }
 
 // --- Render Functions ---
 function generateGenreFilters() {
-    const genres = ['All', ...new Set(allBooks.map(b => b.genre))];
+    // On the shelf these are built from the shelf, not the whole collection.
+    // Otherwise a three-book shelf shows eleven chips, nearly all of which
+    // filter down to nothing.
+    const source = showingBookshelf ? shelfBooks() : allBooks;
+    const genres = ['All', ...new Set(source.map(b => b.genre))];
     const container = document.getElementById('genre-filters');
-    container.innerHTML = genres.map(genre => 
-        `<button class="filter-chip ${genre === 'All' ? 'active' : ''}" onclick="filterByGenre('${genre}')">${genre}</button>`
+    container.innerHTML = genres.map(genre =>
+        `<button class="filter-chip ${genre === currentGenre ? 'active' : ''}" onclick="filterByGenre('${genre}')">${genre}</button>`
+    ).join('');
+}
+
+// --- Shelf ---
+// Everything here is derived from data the site already collects: favourites
+// for what you saved, scroll depth for how far you got, ratings for what you
+// finished. Nothing is filed by hand, which is the reason it stays accurate.
+const SHELF_TABS = [
+    { key: 'saved',    label: 'Saved' },
+    { key: 'reading',  label: 'Reading' },
+    { key: 'finished', label: 'Finished' },
+];
+
+function savedBooks() {
+    return favorites.map(id => allBooks.find(b => b.id === id)).filter(Boolean);
+}
+
+function shelfBooks(tab = currentShelf) {
+    const saved = savedBooks();
+    if (tab === 'reading')  return saved.filter(b => bookState(b) === 'reading');
+    if (tab === 'finished') return saved.filter(b => bookState(b) === 'finished');
+    return saved;
+}
+
+function shelfCounts() {
+    const saved = savedBooks();
+    return {
+        saved:    saved.length,
+        reading:  saved.filter(b => bookState(b) === 'reading').length,
+        finished: saved.filter(b => bookState(b) === 'finished').length,
+    };
+}
+
+// Favourites are an append-only array, so a story's index in it is the order
+// it was saved: index 0 is the oldest, the last slot the newest. That gives
+// "date added" for free, with no timestamps and no extra storage key.
+function addedRank(book) {
+    return favorites.indexOf(book.id);
+}
+
+function averageRating(list) {
+    const rated = list.map(b => ratings[b.id]).filter(Boolean);
+    if (!rated.length) return 0;
+    return rated.reduce((a, b) => a + b, 0) / rated.length;
+}
+
+function renderShelfTabs() {
+    const counts = shelfCounts();
+    SHELF_TABS.forEach(tab => {
+        const btn = document.querySelector(`.shelf-tab[data-shelf="${tab.key}"]`);
+        if (!btn) return;
+        btn.classList.toggle('active', currentShelf === tab.key);
+        btn.setAttribute('aria-selected', currentShelf === tab.key);
+        const badge = btn.querySelector('.tab-count');
+        if (badge) badge.textContent = counts[tab.key];
+    });
+}
+
+function selectShelf(tab) {
+    currentShelf = tab;
+    currentGenre = 'All';
+    currentSearch = '';
+    document.getElementById('search-input').value = '';
+    renderShelfTabs();
+    generateGenreFilters();
+    renderBooks();
+}
+
+// The library and the shelf want different sort lists. Shelf-only sorts have
+// no meaning against the full collection, so they are swapped out rather than
+// left there doing nothing.
+const SORTS = {
+    library: [
+        ['default', 'Sort: Featured'],
+        ['title',   'Title (A-Z)'],
+        ['author',  'Author (A-Z)'],
+    ],
+    shelf: [
+        ['default',  'Sort: Date Added'],
+        ['added',    'Date Added (Newest)'],
+        ['rating',   'Your Rating'],
+        ['progress', 'How Far You Got'],
+        ['title',    'Title (A-Z)'],
+        ['author',   'Author (A-Z)'],
+    ],
+};
+
+function renderSortOptions() {
+    const sel = document.getElementById('sort-select');
+    if (!sel) return;
+    const options = showingBookshelf ? SORTS.shelf : SORTS.library;
+    if (!options.some(([value]) => value === currentSort)) currentSort = 'default';
+    sel.innerHTML = options.map(([value, label]) =>
+        `<option value="${value}"${value === currentSort ? ' selected' : ''}>${label}</option>`
     ).join('');
 }
 
@@ -201,9 +304,7 @@ function renderBooks() {
     const grid = document.getElementById('book-grid');
     grid.innerHTML = '';
 
-    let filtered = showingBookshelf 
-        ? allBooks.filter(b => favorites.includes(b.id)) 
-        : [...allBooks];
+    let filtered = showingBookshelf ? shelfBooks() : [...allBooks];
 
     if (currentGenre !== 'All') filtered = filtered.filter(b => b.genre === currentGenre);
 
@@ -216,19 +317,31 @@ function renderBooks() {
         );
     }
 
-    if (currentSort === 'title') filtered.sort((a, b) => a.title.localeCompare(b.title));
-    if (currentSort === 'author') filtered.sort((a, b) => a.author.localeCompare(b.author));
+    if (currentSort === 'title')    filtered.sort((a, b) => a.title.localeCompare(b.title));
+    if (currentSort === 'author')   filtered.sort((a, b) => a.author.localeCompare(b.author));
+    if (currentSort === 'added')    filtered.sort((a, b) => addedRank(b) - addedRank(a));
+    if (currentSort === 'rating')   filtered.sort((a, b) => (ratings[b.id] || 0) - (ratings[a.id] || 0));
+    if (currentSort === 'progress') filtered.sort((a, b) => (readingProgress[b.id] || 0) - (readingProgress[a.id] || 0));
 
-    document.getElementById('results-count').textContent = 
-        `Showing ${filtered.length} book${filtered.length !== 1 ? 's' : ''}${showingBookshelf ? ' in your shelf' : ''}`;
+    const results = document.getElementById('results-count');
+    if (showingBookshelf) {
+        // On the shelf this line carries the shelf's own tallies rather than
+        // the library's count, so the tabs and the numbers always agree.
+        const counts = shelfCounts();
+        const avg = averageRating(savedBooks());
+        const parts = [
+            `${counts.saved} saved`,
+            `${counts.reading} in progress`,
+            `${counts.finished} finished`,
+        ];
+        if (avg) parts.push(`avg ${avg.toFixed(1)} / 5`);
+        results.textContent = parts.join('  \u00b7  ');
+    } else {
+        results.textContent = `Showing ${filtered.length} book${filtered.length !== 1 ? 's' : ''}`;
+    }
 
     if (filtered.length === 0) {
-        grid.innerHTML = `
-            <div class="empty-state">
-                <i class="fa-solid fa-feather-pointed"></i>
-                <h3>No books found</h3>
-                <p>Try adjusting your search or filters.</p>
-            </div>`;
+        grid.innerHTML = emptyStateHtml();
         return;
     }
 
@@ -272,10 +385,46 @@ function renderBooks() {
     });
 }
 
+// --- Empty states ---
+// An empty grid means something different depending on why it is empty.
+// Telling someone to "try adjusting your search" when their shelf is simply
+// unfilled blames them for doing nothing wrong.
+function emptyStateHtml() {
+    if (showingBookshelf && favorites.length === 0) {
+        return emptyState('fa-heart', 'Your shelf is empty',
+            'Tap the heart on any story to keep it here.',
+            'Browse the collection', 'showLibrary()');
+    }
+
+    const tabCopy = {
+        reading:  ['Nothing in progress',
+                   'Open a story and it shows up here while you read it.'],
+        finished: ['Nothing finished yet',
+                   'Read a story through and it lands here, ready to rate.'],
+    };
+
+    if (showingBookshelf && currentShelf !== 'saved' && currentGenre === 'All' && !currentSearch) {
+        const [title, text] = tabCopy[currentShelf] || ['Nothing here yet', ''];
+        return emptyState('fa-book-open', title, text, 'Back to Saved', "selectShelf('saved')");
+    }
+
+    return emptyState('fa-feather-pointed', 'No books found',
+        'Try adjusting your search or filters.');
+}
+
+function emptyState(icon, title, text, action, actionFn) {
+    return `
+        <div class="empty-state">
+            <i class="fa-solid ${icon}"></i>
+            <h3>${title}</h3>
+            <p>${text}</p>
+            ${action ? `<button class="btn outline-btn" onclick="${actionFn}">${action}</button>` : ''}
+        </div>`;
+}
+
 // --- Interaction Functions ---
 function filterByGenre(genre) {
     currentGenre = genre;
-    showingBookshelf = false;
     document.querySelectorAll('.filter-chip').forEach(chip => {
         chip.classList.toggle('active', chip.textContent === genre);
     });
@@ -291,23 +440,44 @@ function toggleFavorite(id, btn) {
         btn.classList.add('active');
     }
     localStorage.setItem('howell-reads-favorites', JSON.stringify(favorites));
-    if (showingBookshelf) renderBooks();
+    if (showingBookshelf) {
+        // Un-hearting the last story of a genre leaves a chip that filters to
+        // nothing, so the chips are rebuilt from whatever the shelf now holds.
+        const stillThere = shelfBooks().some(b => b.genre === currentGenre);
+        if (currentGenre !== 'All' && !stillThere) currentGenre = 'All';
+        renderShelfTabs();
+        generateGenreFilters();
+        renderBooks();
+    }
+}
+
+function setHero(eyebrow, title, blurb) {
+    const hero = document.querySelector('.hero-section');
+    hero.querySelector('.eyebrow').textContent = eyebrow;
+    hero.querySelector('h1').textContent = title;
+    hero.querySelector('p').textContent = blurb;
+}
+
+function showView(id) {
+    ['library-view', 'reader-view', 'dashboard-view'].forEach(view =>
+        document.getElementById(view).classList.toggle('hidden', view !== id));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function showBookshelf() {
     showingBookshelf = true;
+    currentShelf = 'saved';
     currentGenre = 'All';
     currentSearch = '';
     document.getElementById('search-input').value = '';
-    document.querySelectorAll('.filter-chip').forEach(chip => chip.classList.remove('active'));
-    document.querySelector('.filter-chip').classList.add('active');
-    document.querySelector('.hero-section h1').textContent = "Your Personal Shelf";
-    document.querySelector('.hero-section p').textContent = "The stories you've saved to read later.";
+    setHero('Your Shelf \u2014 Kept by Heart', 'My Shelf',
+        "Every story you've kept. Saved, part-read and finished sort themselves out as you read.");
+    document.getElementById('shelf-tabs').classList.remove('hidden');
+    renderSortOptions();
+    renderShelfTabs();
+    generateGenreFilters();
     renderBooks();
-    document.getElementById('library-view').classList.remove('hidden');
-    document.getElementById('reader-view').classList.add('hidden');
-    document.getElementById('dashboard-view').classList.add('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showView('library-view');
 }
 
 function showLibrary() {
@@ -315,15 +485,13 @@ function showLibrary() {
     currentGenre = 'All';
     currentSearch = '';
     document.getElementById('search-input').value = '';
-    document.querySelectorAll('.filter-chip').forEach(chip => chip.classList.remove('active'));
-    document.querySelector('.filter-chip').classList.add('active');
-    document.querySelector('.hero-section h1').textContent = "The Howell Reads Collection";
-    document.querySelector('.hero-section p').textContent = "A hand-picked library of short stories and novels. Read freely, collect endlessly.";
+    setHero('Est. 2026 \u2014 Curated Stories', 'The Howell Reads Collection',
+        'A hand-picked library of short stories and novels. Read freely, collect endlessly.');
+    document.getElementById('shelf-tabs').classList.add('hidden');
+    renderSortOptions();
+    generateGenreFilters();
     renderBooks();
-    document.getElementById('library-view').classList.remove('hidden');
-    document.getElementById('reader-view').classList.add('hidden');
-    document.getElementById('dashboard-view').classList.add('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showView('library-view');
 }
 
 // --- Reading History ---
@@ -408,10 +576,8 @@ function starsHtml(book) {
 function showDashboard() {
     showingBookshelf = false;
     renderDashboard();
-    document.getElementById('library-view').classList.add('hidden');
-    document.getElementById('reader-view').classList.add('hidden');
-    document.getElementById('dashboard-view').classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('shelf-tabs').classList.add('hidden');
+    showView('dashboard-view');
 }
 
 function renderDashboard() {
@@ -653,6 +819,15 @@ function openBook(id, cardElement) {
 
         // Record the story in reading history for the dashboard
         markAsRead(book.id);
+
+        // Seed progress at zero. Without this a freshly opened story lands in
+        // history with no progress at all, which the legacy rule reads as
+        // "Finished" -- so the Finished tab would flash on for a moment and
+        // then fall back the instant the reader scrolled.
+        if (readingProgress[book.id] === undefined) {
+            readingProgress[book.id] = 0;
+            saveProgress();
+        }
 
         document.getElementById('library-view').classList.add('hidden');
         document.getElementById('dashboard-view').classList.add('hidden');
