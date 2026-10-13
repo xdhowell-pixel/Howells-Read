@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Howell Reads | Curated Storybook Collection</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Reading Progress Bar -->
+    <div id="progress-bar"></div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <header>
+        <nav>
+            <div class="logo" onclick="showLibrary()">
+                <i class="fa-solid fa-feather-pointed"></i> Howell<span>Reads</span>
+            </div>
+            <ul>
+                <li><a href="#" onclick="showLibrary()">The Collection</a></li>
+                <li><a href="#" onclick="showBookshelf()"><i class="fa-solid fa-bookmark"></i> My Shelf</a></li>
+                <li><a href="#" onclick="showDashboard()"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+                <li>
+                    <button id="theme-toggle" class="icon-btn" aria-label="Toggle Dark Mode">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Library View -->
+        <section id="library-view">
+            <div class="hero-section">
+                <div class="hero-content">
+                    <span class="eyebrow">Est. 2026 — Curated Stories</span>
+                    <h1>The Howell Reads Collection</h1>
+                    <p>A hand-picked library of short stories and novels. Read freely, collect endlessly.</p>
+                </div>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="library-toolbar">
+                <div class="search-wrapper">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="search-input" placeholder="Search by title, author, or genre...">
+                </div>
+                <div class="filter-wrapper">
+                    <select id="sort-select" class="styled-select">
+                        <option value="default">Sort: Featured</option>
+                        <option value="title">Title (A-Z)</option>
+                        <option value="author">Author (A-Z)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Genre Filter Chips -->
+            <div class="genre-filters" id="genre-filters"></div>
+
+            <div class="results-count" id="results-count">Showing 30 books</div>
+            
+            <div class="book-grid" id="book-grid"></div>
+        </section>
+
+        <!-- Dashboard View -->
+        <section id="dashboard-view" class="hidden">
+            <div class="hero-section">
+                <div class="hero-content">
+                    <span class="eyebrow">Your Reading Journey</span>
+                    <h1>Reader Dashboard</h1>
+                    <p>A snapshot of your progress through the Howell Reads collection.</p>
+                </div>
+            </div>
+
+            <!-- Stat Cards -->
+            <div class="stat-grid" id="stat-grid"></div>
+
+            <!-- Panels -->
+            <div class="dashboard-panels">
+                <div class="panel">
+                    <h3><i class="fa-solid fa-chart-simple"></i> Genre Breakdown</h3>
+                    <div id="genre-chart"></div>
+                </div>
+                <div class="panel">
+                    <h3><i class="fa-solid fa-clock-rotate-left"></i> Recently Read</h3>
+                    <div id="recent-list"></div>
+                </div>
+            </div>
+
+            <button class="btn outline-btn reset-btn" onclick="resetStats()">
+                <i class="fa-solid fa-rotate-left"></i> Reset Reading Data
+            </button>
+        </section>
+
+        <!-- Reader View -->
+        <section id="reader-view" class="hidden">
+            <button class="btn back-btn" onclick="showLibrary()"><i class="fa-solid fa-arrow-left"></i> Back to Collection</button>
+            
+            <article class="story-reader" id="story-reader-container">
+                <header class="story-header">
+                    <span class="genre-tag" id="story-genre">Genre</span>
+                    <h2 id="story-title">Book Title</h2>
+                    <p class="author-line">By <span id="story-author">Author Name</span></p>
+                    
+                    <button class="btn outline-btn" id="toggle-synopsis">Read Synopsis</button>
+                    <div id="synopsis-wrapper" class="synopsis-wrapper hidden">
+                        <div id="story-synopsis" class="synopsis-box">
+                            <p>This is the synopsis of the book...</p>
+                        </div>
+                    </div>
+                </header>
+                
+                <div class="story-content">
+                    <img id="story-image" src="" alt="Story Image" class="story-img">
+                    <h3 id="chapter-title">Introduction</h3>
+                    <div id="chapter-content">
+                        <p>The complete story text will be added shortly.</p>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Howell Reads. An original ITE 1 Project.</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

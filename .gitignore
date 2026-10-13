@@ -1,0 +1,17 @@
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Editor swap / backup files ---
+*.swp
+*.swo
+*~
+*.bak
+
+# --- Logs ---
+*.log
+
+# --- Not part of the site ---
+node_modules/
+.cache/
