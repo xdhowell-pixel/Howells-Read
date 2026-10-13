@@ -38,33 +38,133 @@ const books = [
     story(5, "The Horla", "Guy de Maupassant", "Horror", "images/horla.jpg",
         "A chilling account of an invisible, parasitic entity slowly taking over a man's mind."),
 
-    // ---- Synopses still to write: replace PENDING with your own line ----
-    story(6, "At the Mountains of Madness", "H. P. Lovecraft", "Cosmic Horror", "images/at-the-mountains-of-madness.jpg", PENDING),
-    story(7, "The Call of Cthulhu", "H. P. Lovecraft", "Cosmic Horror", "images/the-call-of-ctulhu.jpeg", PENDING),
-    story(8, "The Dunwich Horror", "H. P. Lovecraft", "Cosmic Horror", "images/the-dunwich-horror.jpeg", PENDING),
-    story(9, "The Shadows over Innsmouth", "H. P. Lovecraft", "Cosmic Horror", "images/the-shadows-over-innsmouth.jpg", PENDING),
-    story(10, "The Last Question", "Isaac Asimov", "Sci-Fi", "images/the-last-question.jpg", PENDING),
-    story(11, "The Sound of Thunder", "Ray Bradbury", "Sci-Fi", "images/the-sound-of-thunder.jpg", PENDING),
-    story(12, "There Will Come Soft Rains", "Ray Bradbury", "Sci-Fi", "images/there-will-come-soft-rains.jpg", PENDING),
-    story(13, "Exhalation", "Ted Chiang", "Sci-Fi", "images/exhalation.jpg", PENDING),
-    story(14, "The Adventure of the Speckled Band", "Arthur Conan Doyle", "Mystery", "images/the-adventure-of-the-speckled-band.jpeg", PENDING),
-    story(15, "A Scandal in Bohemia", "Arthur Conan Doyle", "Mystery", "images/a-scandal-in-bohemia.jpg", PENDING),
-    story(16, "The Murders in the Rue Morgue", "Edgar Allan Poe", "Mystery", "images/the-murders-in-the-rue-morgue.jpg", PENDING),
-    story(17, "An Occurrence at Owl Creek Bridge", "Ambrose Bierce", "Classic", "images/an-occurrence-at-owl-creek-bridge.jpeg", PENDING),
-    story(18, "Rip Van Winkle", "Washington Irving", "Fantasy", "images/rip-van-winkle.jpeg", PENDING),
-    story(19, "The Legend of Sleepy Hollow", "Washington Irving", "Horror", "images/the-legend-of-sleepy-hollow.jpeg", PENDING),
-    story(20, "Bartleby, the Scrivener", "Herman Melville", "Classic", "images/bartleby-the-scrivener.webp", PENDING),
-    story(21, "Hills Like White Elephants", "Ernest Hemingway", "Classic", "images/hills-like-white-elephants.jpeg", PENDING),
-    story(22, "Lamb to the Slaughter", "Roald Dahl", "Mystery", "images/lamb-to-the-slaughter.jpeg", PENDING),
-    story(23, "The Lady with the Dog", "Anton Chekhov", "Classic", "images/the-lady-with-the-dog.jpeg", PENDING),
-    story(24, "The Magic Shop", "H. G. Wells", "Fantasy", "images/the-magic-shop.jpeg", PENDING),
-    story(25, "The Metamorphosis", "Franz Kafka", "Psychological", "images/the-metamorphosis.jpeg", PENDING),
-    story(26, "The Most Dangerous Game", "Richard Connell", "Adventure", "images/the-most-dangerous-game.jpeg", PENDING),
-    story(27, "The Happy Prince", "Oscar Wilde", "Fantasy", "images/the-happy-prince.jpg", PENDING),
-    story(28, "The Nose", "Nikolai Gogol", "Fantasy", "images/the-nose.jpg", PENDING),
-    story(29, "The Lottery", "Shirley Jackson", "Horror", "images/the-lottery.jpg", PENDING),
-    story(30, "The Dead", "James Joyce", "Classic", "images/the-dead.jpeg", PENDING),
+    // ---- Synopses below written for this project ----
+    story(6, "At the Mountains of Madness", "H. P. Lovecraft", "Cosmic Horror", "images/at-the-mountains-of-madness.jpg",
+        "A scientific expedition to Antarctica finds an earlier party dead and scattered, and follows their trail inland to a city of black stone larger than anything built by man. In the frozen rock they uncover fossils of a life form older than the whole history of life on Earth. What is carved into the walls of that city ends the expedition, and nearly ends Dyer."),
+    story(7, "The Call of Cthulhu", "H. P. Lovecraft", "Cosmic Horror", "images/the-call-of-ctulhu.jpeg",
+        "When a great-uncle dies, a man inherits a box of papers describing a clay idol found in a Louisiana swamp and a worldwide brotherhood worshipping something that sleeps beneath the Pacific. The trail runs from Sydney to the Arctic, gathering witnesses who all saw the same thing and none of whom agree on what it was. It ends where it began: a ship, an island, and something that should not have been woken."),
+    story(8, "The Dunwich Horror", "H. P. Lovecraft", "Cosmic Horror", "images/the-dunwich-horror.jpeg",
+        "In the back hills of Massachusetts, a farming family keeps a second child hidden from the world, and no one asks why. Whippoorwills call at the wrong hours, livestock are found dead, and something tears the barn apart from the inside. When the thing finally comes to town in daylight, three men and a book are all that stand between it and the rest of the state."),
+    story(9, "The Shadows over Innsmouth", "H. P. Lovecraft", "Cosmic Horror", "images/the-shadows-over-innsmouth.jpg",
+        "A young man tracing his family tree stops in a decaying New England fishing town that nobody will discuss and nobody will enter after dark. The churches are empty, the gold coins are a century old, and the boats go out at night without lights. By the time he understands what the town has become, he has also worked out what he is becoming."),
+    story(10, "The Last Question", "Isaac Asimov", "Sci-Fi", "images/the-last-question.jpg",
+        "In 2061, a junior technician idly asks the most powerful computer in existence whether the entropy of the universe can be reversed. The answer is the same for every age that follows: data insufficient. Millions of years later the question is still being asked by minds that no longer resemble the ones who first asked it, and the answer finally comes, but not for them."),
+    story(11, "The Sound of Thunder", "Ray Bradbury", "Sci-Fi", "images/the-sound-of-thunder.jpg",
+        "Eckels pays a great deal of money to hunt a tyrannosaur in the distant past, under strict instructions: stay on the metal path, touch nothing, kill only what the guide permits. On the way back out he steps off the path. When he reaches 2055 again the spelling has changed, the language has changed, and the result of the election has changed with it."),
+    story(12, "There Will Come Soft Rains", "Ray Bradbury", "Sci-Fi", "images/there-will-come-soft-rains.jpg",
+        "The house wakes first: watering the lawn, sweeping the porch, baking and announcing the time to a family that is not there. All day it works steadily through its list, and all day the family never comes home. By evening it has finished the last chore on its list, and there is nothing left for it to do."),
+    story(13, "Exhalation", "Ted Chiang", "Sci-Fi", "images/exhalation.jpg",
+        "A being made of brass and pistons cuts open its own skull so it can watch its own thoughts forming. It works out how thinking happens, then it works out how thinking ends: the compressed air that powers every mind is running out, everywhere, and it cannot be replaced. So the message goes out, and every mind turns to the same problem."),
+    story(14, "The Adventure of the Speckled Band", "Arthur Conan Doyle", "Mystery", "images/the-adventure-of-the-speckled-band.jpeg",
+        "A young woman watched her dying sister sit up in the night, hear a whistling sound, and speak of a spotted band moving in the dark. Holmes takes the case with almost no evidence, because there is almost no evidence, and because the same whistle has come for the surviving sister. What is loose in that bedroom is not what the family believes is loose in it."),
+    story(15, "A Scandal in Bohemia", "Arthur Conan Doyle", "Mystery", "images/a-scandal-in-bohemia.jpg",
+        "The King of Bohemia wants one photograph destroyed, and he wants it done without a scandal anyone will hear about. Holmes takes the case, sets a careful trap, and loses it more or less cleanly to Irene Adler, who out-planned him before he arrived. He keeps her photograph, and her note, and never calls it a defeat."),
+    story(16, "The Murders in the Rue Morgue", "Edgar Allan Poe", "Mystery", "images/the-murders-in-the-rue-morgue.jpg",
+        "Two women are found dead in a locked apartment on the fourth floor: the windows shut, the chimney too narrow for anything larger than a cat, and the neighbours all heard a voice speaking a language none of them recognised. The police have a confession, a suspect and no way to explain how any of it happened. The explanation Dupin reaches is not one the police would ever have arrived at."),
+    story(17, "An Occurrence at Owl Creek Bridge", "Ambrose Bierce", "Classic", "images/an-occurrence-at-owl-creek-bridge.jpeg",
+        "A Southern farmer, tied beneath a Union railway bridge with a rope around his neck and a plank under his feet, is given a moment to pray before the drop. It takes Bierce three pages to get him to his own front gate, and one sentence to take the whole thing away."),
+    story(18, "Rip Van Winkle", "Washington Irving", "Fantasy", "images/rip-van-winkle.jpeg",
+        "A farmer who would rather work than go home to his wife walks into the Catskills with his dog and a rifle, and meets strangers playing ninepins in a mountain hollow. He drinks with them and wakes the next morning to a grey beard, an empty glen, and a village that has never heard of him. The country he comes back to is not the one he left."),
+    story(19, "The Legend of Sleepy Hollow", "Washington Irving", "Horror", "images/the-legend-of-sleepy-hollow.jpeg",
+        "A schoolmaster arrives in a quiet Dutch valley and sets about charming the richest girl in the district, which puts him head-on against the girl's rough suitor. Both men know the valley's favourite story about the rider who carries his own head. On his way home one night from a party he has drunk too much at, Ichabod meets something on the bridge."),
+    story(20, "Bartleby, the Scrivener", "Herman Melville", "Classic", "images/bartleby-the-scrivener.webp",
+        "A Wall Street lawyer hires a quiet copyist who works steadily and without complaint until the day he is asked to proofread instead. Then he says he would prefer not to, and declines to explain why. The lawyer is patient and reasonable about it for a very long time, which turns out to be exactly the wrong response."),
+    story(21, "Hills Like White Elephants", "Ernest Hemingway", "Classic", "images/hills-like-white-elephants.jpeg",
+        "A man and a woman wait at a Spanish railway station for a train to Madrid, and spend the afternoon ordering drinks. They argue, agree, argue again, and agree that the operation is very simple. Neither of them ever says what the operation is actually for, and the train is coming."),
+    story(22, "Lamb to the Slaughter", "Roald Dahl", "Mystery", "images/lamb-to-the-slaughter.jpeg",
+        "Mary Maloney is a devoted housewife waiting patiently for her husband to come home from work. When he gets there, he tells her something that makes her kill him quite calmly with a frozen leg of lamb. She cooks it, offers it to the men hunting for the murder weapon, and eats it with them."),
+    story(23, "The Lady with the Dog", "Anton Chekhov", "Classic", "images/the-lady-with-the-dog.jpeg",
+        "A married man takes a holiday in Yalta, meets a young woman who is also married to someone else, and fully intends the affair to end with the season. It does not end. Both of them go back to their own lives and find those lives suddenly unbearable, not because of anything that happened in Yalta, but because of what they now know they are capable of."),
+    story(24, "The Magic Shop", "H. G. Wells", "Fantasy", "images/the-magic-shop.jpeg",
+        "A father takes his son into a shop to buy a toy and finds a shopkeeper who sells things that work on the people buying them. The tricks are not tricks at all: the toy grins back at him, and the shopkeeper refuses to take the bill. Getting out of the shop turns out to be the harder part."),
+    story(25, "The Metamorphosis", "Franz Kafka", "Psychological", "images/the-metamorphosis.jpeg",
+        "Gregor Samsa wakes one morning as a monstrous insect, and his first worry is that he will miss the early train. His family cannot get into the room, and when they finally do, they are not pleased. The months that follow are mostly about how quickly a family can decide that a burden has an expiry date."),
+    story(26, "The Most Dangerous Game", "Richard Connell", "Adventure", "images/the-most-dangerous-game.jpeg",
+        "Rainsford falls from his yacht onto an island where the host, General Zaroff, has hunted everything that runs and has grown bored of all of it. Zaroff has found something else to hunt instead, and he has rules about it, and a house full of trophies. Rainsford has three days before it is his turn."),
+    story(27, "The Happy Prince", "Oscar Wilde", "Fantasy", "images/the-happy-prince.jpg",
+        "A gold-and-jewel statue stands over a city and, for the first time, can see how poor the people under him are. A swallow stays behind past the season to help him give everything away, feather by feather and ruby by ruby. By the end the statue is scrap metal and the bird is dead, and both of them are thrown on a heap in the square."),
+    story(28, "The Nose", "Nikolai Gogol", "Fantasy", "images/the-nose.jpg",
+        "A minor official in St Petersburg shaves one morning and finds his nose is no longer on his face. It turns up in a shop, in a church, in a carriage, and it outranks him politely declining to explain itself. He tries to get it back, and nobody will take him seriously, because nobody can."),
+    story(29, "The Lottery", "Shirley Jackson", "Horror", "images/the-lottery.jpg",
+        "On a clear June morning the villagers gather in the square for the annual lottery, which takes under two hours and is run about as casually as a fire drill. The box is old, the slips are black, and people joke about the households that usually lose. It is not until the last few pages that the reader works out what the prize is."),
+    story(30, "The Dead", "James Joyce", "Classic", "images/the-dead.jpeg",
+        "Gabriel goes to his aunts' annual Christmas dinner and spends the evening being awkward, proud, and a little tired of his students and his relatives. At the door on the way out, his wife tells him about a boy who once sang for her and then died of it. He goes home through the snow, thinks about the boy, and then thinks about something else entirely."),
+
+    // ---- Apocalypse / end-of-the-world set, added after the first 30 ----
+    // All eight are public domain, so each carries a full text in texts/.
+    story(31, "The Poison Belt", "Arthur Conan Doyle", "Apocalypse", "images/the-poison-belt.jpg",
+        "Professor Challenger notices subtle changes in light spectra and strange behaviour in wildlife, and realises the solar system is drifting into a cloud of poisonous cosmic ether. The story tracks the slow, dread-filled days leading up to the moment the poison reaches Earth, as people watch society quiet down and collapse outside their sealed windows."),
+    story(32, "The Machine Stops", "E. M. Forster", "Apocalypse", "images/the-machine-stops.jpg",
+        "Humanity lives in isolated underground rooms, completely reliant on a giant global Machine for food, communication and air. The build-up begins when minor glitches start happening: a hum out of tune, a button that answers late. People ignore the warning signs until the whole infrastructure decays toward total failure."),
+    story(33, "The Empire of the Ants", "H. G. Wells", "Apocalypse", "images/empire-of-the-ants.jpg",
+        "Reports filter in from remote jungle outposts about an oddly intelligent, aggressive species of ant. A gunboat crew sent to investigate finds abandoned villages and dead livestock, and realises the ants are evolving, making tools, and spreading outwards."),
+    story(34, "The Last Man", "Mary Shelley", "Apocalypse", "images/the-last-man.jpg",
+        "Written by the author of Frankenstein, this is considered one of the first true post-apocalyptic novels in modern history. Set in the late twenty-first century, it follows a group of friends as news of an unstoppable global plague spreads across Europe, turning small rumours into nationwide panic and the dissolution of society."),
+    story(35, "The Star", "H. G. Wells", "Apocalypse", "images/the-star.jpg",
+        "Astronomers spot a vast dark body crossing the solar system and work out it will pass close to Earth. For a few weeks the world agrees to behave well, then the figures are revised and the newspapers lose interest. When it finally passes, the oceans have moved and the northern hemisphere has been scoured clean."),
+    story(36, "A Jury of Her Peers", "Susan Glaspell", "Mystery", "images/a-jury-of-her-peers.jpg",
+        "A farmer's wife has been arrested for murdering her husband, and two women are driven out to the empty house to look for evidence. The men search for a motive and find nothing worth discussing. The women find a quilt, a sewing box, and a dead bird."),
+    story(37, "The Damned Thing", "Ambrose Bierce", "Horror", "images/the-damned-thing.jpg",
+        "At an inquest into a man's death, the witnesses describe something they saw in a ravine, and no two of them saw it the same way. The dead man's own account, read aloud, settles nothing. Whatever killed him hunts by a colour that human eyes cannot see."),
+    story(38, "2 B R 0 2 B", "Kurt Vonnegut", "Apocalypse", "images/2-b-r-0-2-b.jpg",
+        "Population is fixed at forty million and ageing is a choice, so a man reporting to a suicide bureau brings his whole family along when his grandfather refuses to go quietly. The future is cheerful, efficient, and has run out of room. Nobody alive remembers what the letters in the title used to spell."),
+
+    // ---- Second wave, added with their own cover art ----
+    story(39, "The War of the Worlds", "H. G. Wells", "Apocalypse", "images/war-of-the-worlds.jpg",
+        "Cylinders land on Horsell Common and the people who walk out to meet them are not negotiators. The army is broken in an afternoon, London empties in a week, and the machines walk north with nothing behind them but smoke. The narrator keeps moving, and the story ends with him walking back into a city that has gone quiet."),
+    story(40, "Youth", "Isaac Asimov", "Sci-Fi", "images/youth.jpg",
+        "Two visiting aliens park their ship on an undeveloped planet and ask a local boy to help them study its native life form. The report they file afterwards is about animals, migration, and whether the species is ready for contact. It is only at the end that the reader works out which species they were describing."),
+    story(41, "Omnilingual", "H. Beam Piper", "Sci-Fi", "images/omnilingual.jpg",
+        "An archaeologist on Mars finds a dead city and a library of records in a language nobody can read. Every other discipline gives up on the glyphs, so the linguistics team works backwards from the periodic table, which any technical civilisation has to have encoded the same way. The breakthrough is not the reading of the records but what the records say about why they stopped being written."),
+    story(42, "A Traveler in Time", "August Derleth", "Fantasy", "images/a-traveler-in-time.jpg",
+        "A man taking a holiday in England finds himself slipping backwards into the same few weeks of 1585, drawn into the household where Mary Queen of Scots is being held. Each return is shorter than the last, and the people around him begin to remember who he is. He cannot leave, and he cannot quite arrive."),
 ];
+
+// --- Stories with a full public-domain text in texts/ ---
+// Add or remove a line here; the reader picks it up automatically.
+const FULL_TEXTS = {
+    1: "texts/tell-tale-heart.txt",
+    2: "texts/yellow-wallpaper.txt",
+    3: "texts/monkeys-paw.txt",
+    4: "texts/signal-man.txt",
+    5: "texts/horla.txt",
+    6: "texts/at-the-mountains-of-madness.txt",
+    7: "texts/the-call-of-ctulhu.txt",
+    8: "texts/the-dunwich-horror.txt",
+    9: "texts/the-shadows-over-innsmouth.txt",
+    14: "texts/the-adventure-of-the-speckled-band.txt",
+    15: "texts/a-scandal-in-bohemia.txt",
+    16: "texts/the-murders-in-the-rue-morgue.txt",
+    17: "texts/an-occurrence-at-owl-creek-bridge.txt",
+    18: "texts/rip-van-winkle.txt",
+    19: "texts/the-legend-of-sleepy-hollow.txt",
+    20: "texts/bartleby-the-scrivener.txt",
+    21: "texts/hills-like-white-elephants.txt",
+    23: "texts/the-lady-with-the-dog.txt",
+    24: "texts/the-magic-shop.txt",
+    26: "texts/the-most-dangerous-game.txt",
+    27: "texts/the-happy-prince.txt",
+    28: "texts/the-nose.txt",
+    30: "texts/the-dead.txt",
+    // Apocalypse set
+    31: "texts/the-poison-belt.txt",
+    32: "texts/the-machine-stops.txt",
+    33: "texts/the-empire-of-the-ants.txt",
+    34: "texts/the-last-man.txt",
+    35: "texts/the-star.txt",
+    36: "texts/a-jury-of-her-peers.txt",
+    37: "texts/the-damned-thing.txt",
+    38: "texts/2-b-r-0-2-b.txt",
+    39: "texts/war-of-the-worlds.txt",
+};
+
+// Stories 10, 11, 12, 13, 22, 29, 40, 41 and 42 are still under copyright, so
+// they carry a synopsis only. Story 25 has no free English translation yet.
+// Never paste any of their full text into this repository.
+books.forEach(book => {
+    book.text = FULL_TEXTS[book.id] || "";
+    book.chapterTitle = book.text ? "The Complete Text" : "About This Story";
+});
 
 // --- State Management ---
 let allBooks = [];
@@ -76,6 +176,10 @@ let showingBookshelf = false;
 let favorites = JSON.parse(localStorage.getItem('howell-reads-favorites')) || [];
 // Reading history: most recent first, used by the dashboard
 let readingHistory = JSON.parse(localStorage.getItem('howell-reads-history')) || [];
+// How far through each story the reader got, 0..1, keyed by book id
+let readingProgress = JSON.parse(localStorage.getItem('howell-reads-progress')) || {};
+// Your 1-5 rating for each story, keyed by book id
+let ratings = JSON.parse(localStorage.getItem('howell-reads-ratings')) || {};
 
 // --- Initialize Data ---
 function initializeData() {
@@ -136,10 +240,11 @@ function renderBooks() {
 
         const imgUrl = book.image || `https://picsum.photos/seed/${book.id}/400/600`;
         const isFav = favorites.includes(book.id);
-        const isRead = readingHistory.includes(book.id);
+        const state = bookState(book);
+        const finished = state === 'finished';
 
         card.innerHTML = `
-            <span class="read-badge ${isRead ? '' : 'hidden'}"><i class="fa-solid fa-check"></i> Read</span>
+            <span class="read-badge ${finished ? '' : 'hidden'}"><i class="fa-solid fa-check"></i> Finished</span>
             <button class="fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite(${book.id}, this)">
                 <i class="fa-solid fa-heart"></i>
             </button>
@@ -147,11 +252,22 @@ function renderBooks() {
             <div class="book-info">
                 <h3>${book.title}</h3>
                 <p class="author">By ${book.author}</p>
+                ${finished ? `<div class="rating-row">${starsHtml(book)}</div>` : ''}
                 <div class="read-link">
-                    Read Story <i class="fa-solid fa-arrow-right"></i>
+                    ${readLinkLabel(state)} <i class="fa-solid fa-arrow-right"></i>
                 </div>
             </div>
         `;
+
+        if (finished) {
+            card.querySelectorAll('.star').forEach(star => {
+                star.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    setRating(book.id, Number(star.dataset.value));
+                });
+            });
+        }
+
         grid.appendChild(card);
     });
 }
@@ -218,6 +334,76 @@ function markAsRead(id) {
     localStorage.setItem('howell-reads-history', JSON.stringify(readingHistory));
 }
 
+// --- Read state ---
+// Every reading app uses the same three-rung ladder, so a card's action link
+// relabels itself instead of sitting there saying "Read" while the badge above
+// it also says "Read":  unread -> "Read Story", partway -> "Continue",
+// finished -> "Read Again".
+const FINISH_LINE = 0.95;
+
+function bookState(book) {
+    if (!readingHistory.includes(book.id)) return 'unread';
+    const p = readingProgress[book.id];
+    // Entries written by older versions of this page have history but no
+    // recorded progress. They count as finished, so nothing the reader has
+    // already gone through flips back to "Continue".
+    if (p === undefined) return 'finished';
+    return p >= FINISH_LINE ? 'finished' : 'reading';
+}
+
+function readLinkLabel(state) {
+    if (state === 'reading') return 'Continue';
+    if (state === 'finished') return 'Read Again';
+    return 'Read Story';
+}
+
+function saveProgress() {
+    localStorage.setItem('howell-reads-progress', JSON.stringify(readingProgress));
+}
+
+// The reader scrolls the page, so progress is measured against the reader
+// element rather than a scroll container. Only writes when it has advanced a
+// whole percent, which keeps localStorage traffic negligible.
+function updateReadingProgress() {
+    if (currentBookId === null) return;
+    const view = document.getElementById('reader-view');
+    if (!view || view.classList.contains('hidden')) return;
+    // getBoundingClientRect rather than offsetTop: offsetTop is measured from
+    // the offsetParent, which is not necessarily the document.
+    const scrolled = window.scrollY || 0;
+    const start = scrolled + view.getBoundingClientRect().top;
+    const end = start + view.offsetHeight - window.innerHeight;
+    const p = end <= start ? 1 : Math.min(1, Math.max(0, (scrolled - start) / (end - start)));
+    const prev = readingProgress[currentBookId] || 0;
+    if (p > prev + 0.01) {
+        readingProgress[currentBookId] = p;
+        saveProgress();
+    }
+}
+window.addEventListener('scroll', updateReadingProgress, { passive: true });
+window.addEventListener('beforeunload', saveProgress);
+
+function setRating(id, value) {
+    // Clicking the star you already have clears the rating, like most trackers.
+    if (ratings[id] === value) delete ratings[id];
+    else ratings[id] = value;
+    localStorage.setItem('howell-reads-ratings', JSON.stringify(ratings));
+    renderBooks();
+}
+
+function starsHtml(book) {
+    const value = ratings[book.id] || 0;
+    let out = `<span class="star-rating" role="group" aria-label="Your rating for ${book.title}">`;
+    for (let i = 1; i <= 5; i++) {
+        const on = i <= value;
+        out += `<button type="button" class="star${on ? ' on' : ''}" data-value="${i}"
+                    aria-label="Rate ${i} of 5" aria-pressed="${on}">
+                    <i class="fa-${on ? 'solid' : 'regular'} fa-star"></i>
+                </button>`;
+    }
+    return out + '</span>';
+}
+
 // --- Dashboard ---
 function showDashboard() {
     showingBookshelf = false;
@@ -230,59 +416,44 @@ function showDashboard() {
 
 function renderDashboard() {
     const total = allBooks.length;
-    const readCount = readingHistory.filter(id => allBooks.some(b => b.id === id)).length;
+    const readCount = allBooks.filter(b => bookState(b) === 'finished').length;
     const savedCount = favorites.filter(id => allBooks.some(b => b.id === id)).length;
     const genreCount = new Set(allBooks.map(b => b.genre)).size;
     const percent = total > 0 ? Math.round((readCount / total) * 100) : 0;
 
-    // --- Stat cards ---
-    document.getElementById('stat-grid').innerHTML = `
-        <div class="stat-card progress-card">
-            <div class="ring" style="--p: ${percent * 3.6}deg"><span>${percent}%</span></div>
-            <p class="stat-label">Collection Complete</p>
-        </div>
-        <div class="stat-card">
-            <i class="fa-solid fa-book-open-reader"></i>
-            <p class="stat-value">${readCount}</p>
-            <p class="stat-label">Stories Read</p>
-        </div>
-        <div class="stat-card">
-            <i class="fa-solid fa-heart"></i>
-            <p class="stat-value">${savedCount}</p>
-            <p class="stat-label">On Your Shelf</p>
-        </div>
-        <div class="stat-card">
-            <i class="fa-solid fa-layer-group"></i>
-            <p class="stat-value">${genreCount}</p>
-            <p class="stat-label">Genres Available</p>
-        </div>
-    `;
+    // --- Ledger strip ---
+    document.getElementById('dash-percent').textContent = percent + '%';
+    document.getElementById('dash-gauge').style.width = percent + '%';
+    document.getElementById('dash-foot-progress').textContent = `${readCount} of ${total} stories`;
+    document.getElementById('dash-read').textContent = readCount;
+    document.getElementById('dash-saved').textContent = savedCount;
+    document.getElementById('dash-genres').textContent = genreCount;
 
-    // --- Genre breakdown: bar = share of collection, label = how many you've read ---
+    // --- Genre ledger: bar = the genre's share of the catalogue, figure = what you've read ---
     const genreTotals = {};
     allBooks.forEach(b => { genreTotals[b.genre] = (genreTotals[b.genre] || 0) + 1; });
 
     const genreReads = {};
-    readingHistory.forEach(id => {
-        const book = allBooks.find(b => b.id === id);
-        if (book) genreReads[book.genre] = (genreReads[book.genre] || 0) + 1;
+    allBooks.forEach(book => {
+        if (bookState(book) === 'finished') genreReads[book.genre] = (genreReads[book.genre] || 0) + 1;
     });
 
     const maxTotal = Math.max(...Object.values(genreTotals), 1);
-    document.getElementById('genre-chart').innerHTML = Object.entries(genreTotals)
+    document.getElementById('genre-chart').innerHTML = `
+        <div class="chart-head"><span>Genre</span><span>Share of catalogue</span><span>Read</span></div>
+        <div class="chart-rule"></div>
+        ` + Object.entries(genreTotals)
         .sort((a, b) => b[1] - a[1])
         .map(([genre, count]) => {
             const done = genreReads[genre] || 0;
             const width = Math.round((count / maxTotal) * 100);
             return `
-                <div class="bar-row">
-                    <div class="bar-head">
-                        <span>${genre}</span>
-                        <span class="count">${done}/${count} read</span>
+                <div class="chart-row${done === 0 ? ' is-empty' : ''}">
+                    <span class="chart-key" title="${genre}">${genre}</span>
+                    <div class="chart-bar">
+                        <div class="chart-bar-fill" style="width: ${width}%"></div>
                     </div>
-                    <div class="bar-track">
-                        <div class="bar-fill" style="width: ${width}%"></div>
-                    </div>
+                    <span class="chart-fig">${done}/${count}</span>
                 </div>`;
         }).join('');
 
@@ -309,10 +480,14 @@ function renderDashboard() {
 }
 
 function resetStats() {
-    if (!confirm('Clear your reading history and saved shelf?')) return;
+    if (!confirm('Clear your reading history, ratings and saved shelf?')) return;
     readingHistory = [];
+    readingProgress = {};
+    ratings = {};
     favorites = [];
     localStorage.removeItem('howell-reads-history');
+    localStorage.removeItem('howell-reads-progress');
+    localStorage.removeItem('howell-reads-ratings');
     localStorage.removeItem('howell-reads-favorites');
     renderDashboard();
 }
@@ -351,24 +526,71 @@ document.getElementById('sort-select').addEventListener('change', (e) => {
     renderBooks();
 });
 
-// --- Custom Cursor ---
-const cursorDot = document.querySelector('.cursor-dot');
-const cursorOutline = document.querySelector('.cursor-outline');
-window.addEventListener('mousemove', (e) => {
-    cursorDot.style.left = `${e.clientX}px`;
-    cursorDot.style.top = `${e.clientY}px`;
-    cursorOutline.animate({ left: `${e.clientX}px`, top: `${e.clientY}px` }, { duration: 500, fill: "forwards" });
-});
-document.addEventListener('mouseover', (e) => {
-    if (e.target.closest('.book-card') || e.target.closest('.btn') || e.target.closest('.filter-chip')) {
-        cursorOutline.classList.add('hover-active');
+// --- Story Text Loader ---
+// Texts live one-per-file in texts/. They are fetched only when a story is
+// opened, so the library page stays fast no matter how long the stories are.
+const COPYRIGHT_NOTE = 'This story is still under copyright, so the full text is not reproduced here. You can read it in print, or through a library.';
+
+let textRequest = 0;
+
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+function setStoryMeta(words) {
+    const el = document.getElementById('story-meta');
+    if (!el) return;
+    if (!words) { el.textContent = ''; return; }
+    const minutes = Math.max(1, Math.round(words / 220));
+    el.textContent = `${words.toLocaleString()} words · about ${minutes} min read`;
+}
+
+async function loadStoryText(book) {
+    const container = document.getElementById('chapter-content');
+    const requestId = ++textRequest;
+
+    // No free text available: show the synopsis plus a short explanation.
+    if (!book.text) {
+        container.innerHTML =
+            `<p>${escapeHtml(book.synopsis)}</p><p class="text-note">${escapeHtml(COPYRIGHT_NOTE)}</p>`;
+        setStoryMeta(0);
+        return;
     }
-});
-document.addEventListener('mouseout', (e) => {
-    if (e.target.closest('.book-card') || e.target.closest('.btn') || e.target.closest('.filter-chip')) {
-        cursorOutline.classList.remove('hover-active');
+
+    container.innerHTML = '<p class="loading-line">Setting the type&hellip;</p>';
+
+    try {
+        const response = await fetch(book.text);
+        if (!response.ok) throw new Error(response.status);
+        const raw = await response.text();
+
+        // A newer story was opened while this one was loading.
+        if (requestId !== textRequest) return;
+
+        const paragraphs = raw.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+        const words = paragraphs.join(' ').split(/\s+/).length;
+
+        container.innerHTML = paragraphs.map(p => `<p>${escapeHtml(p)}</p>`).join('');
+        setStoryMeta(words);
+    } catch (error) {
+        if (requestId !== textRequest) return;
+        container.innerHTML =
+            `<p>${escapeHtml(book.synopsis)}</p><p class="text-note">The full text could not be loaded. Please try again.</p>`;
+        setStoryMeta(0);
     }
-});
+}
+
+// --- Next Story ---
+let currentBookId = null;
+
+function nextStory() {
+    const index = allBooks.findIndex(b => b.id === currentBookId);
+    const next = allBooks[(index + 1) % allBooks.length];
+    openBook(next.id, document.createElement('div'));
+}
 
 // --- Progress Bar ---
 window.addEventListener('scroll', () => {
@@ -402,6 +624,7 @@ function openBook(id, cardElement) {
     const book = allBooks.find(b => b.id === id);
     if (!book) return;
 
+    currentBookId = book.id;
     cardElement.classList.add('opening');
 
     setTimeout(() => {
@@ -410,12 +633,7 @@ function openBook(id, cardElement) {
         document.getElementById('story-genre').textContent = book.genre;
         document.getElementById('story-synopsis').querySelector('p').textContent = book.synopsis;
         document.getElementById('chapter-title').textContent = book.chapterTitle;
-        // content is split into paragraphs on blank lines, so you can write
-        // several paragraphs by separating them with an empty line.
-        document.getElementById('chapter-content').innerHTML = String(book.content)
-            .split(/\n\s*\n/)
-            .map(paragraph => `<p>${paragraph.trim()}</p>`)
-            .join('');
+        loadStoryText(book);
 
         const readerImg = book.image || `https://picsum.photos/seed/${book.id}/800/500`;
         document.getElementById('story-image').src = readerImg;
@@ -424,12 +642,13 @@ function openBook(id, cardElement) {
         document.getElementById('synopsis-wrapper').classList.add('hidden');
         document.getElementById('toggle-synopsis').textContent = 'Read Synopsis';
 
-        // Dark base so the white reader text is never unreadable,
-        // then blend in the cover's dominant colour if it loads.
+        // The cover colour tints the panel via --reader-tint (background-color);
+        // CSS decides what wash to lay over it, so the reader stays readable in
+        // both themes instead of always assuming white text on a dark panel.
         const reader = document.getElementById('story-reader-container');
-        reader.style.backgroundImage = 'linear-gradient(rgba(24,18,18,0.78), rgba(24,18,18,0.86)), #2a2a2a';
+        reader.style.setProperty('--reader-tint', '#2a2a2a');
         getDominantColor(readerImg, (color) => {
-            reader.style.backgroundImage = `linear-gradient(rgba(24,18,18,0.78), rgba(24,18,18,0.86)), ${color}`;
+            reader.style.setProperty('--reader-tint', color);
         });
 
         // Record the story in reading history for the dashboard

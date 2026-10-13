@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="spine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6e2020"/>
+      <stop offset="0.5" stop-color="#8b2c2c"/>
+      <stop offset="1" stop-color="#a13a3a"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="13" fill="url(#spine)"/>
+  <rect x="5" y="7" width="2.5" height="50" fill="#e9d9a8" opacity="0.45"/>
+  <text x="35" y="41" font-family="Georgia, 'Times New Roman', serif" font-size="34"
+        font-weight="700" fill="#f4e6bd" text-anchor="middle">H</text>
+  <text x="35" y="53" font-family="Georgia, 'Times New Roman', serif" font-size="8"
+        letter-spacing="2.4" fill="#e9d9a8" text-anchor="middle" opacity="0.9">READS</text>
+</svg>

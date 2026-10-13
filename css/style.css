@@ -1,39 +1,58 @@
 /* --- Howell Reads Branding Variables --- */
 :root {
-    /* Light Mode: Warm Editorial Paper */
-    --bg-color: #f7f5f0; 
-    --surface-color: #ffffff;
-    --text-main: #1a1a1a;
-    --text-muted: #6b6b6b;
-    --primary-color: #8b2c2c; /* Howell Signature Crimson */
+    /* Light Mode: Antique Library — laid paper, warm ink, crimson and gold */
+    --bg-color: #efe6d4;
+    --bg-deep: #e5d9bc;           /* darker paper for bands and washes */
+    --surface-color: #fdfaf2;     /* a fresh page */
+    --text-main: #241c14;         /* warm ink, never pure black */
+    --text-muted: #6d6153;
+    --primary-color: #8b2c2c;     /* Howell Signature Crimson */
     --primary-hover: #6e2020;
-    --accent-color: #c9a227; /* Antique Gold */
-    --border-color: #e6e1d8;
-    --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.04);
-    --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.12);
+    --accent-color: #745717;      /* Antique Gold — dark enough to read as text on cream */
+    --border-color: #d8c9ac;
+    --rule-color: #c6b391;        /* letterpress rules */
+    --grain-opacity: 0.42;
+    --grain-blend: multiply;
+    --shadow-sm: 0 1px 2px rgba(74, 52, 28, 0.10), 0 3px 8px -3px rgba(74, 52, 28, 0.16);
+    --shadow-md: 0 2px 4px rgba(74, 52, 28, 0.10), 0 14px 28px -8px rgba(74, 52, 28, 0.26);
+    --shadow-lg: 0 4px 8px rgba(74, 52, 28, 0.12), 0 30px 60px -14px rgba(74, 52, 28, 0.34);
+    --shadow-book: 0 1px 1px rgba(74, 52, 28, 0.14), 0 8px 16px -6px rgba(74, 52, 28, 0.34);
     --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+    /* Type — the Universe/Riot pairing, in free equivalents.
+       Beaufort for LOL -> Cinzel: classical inscriptional capitals. Cinzel has no
+       real lowercase, so it is only ever used behind text-transform: uppercase.
+       Spiegel -> Barlow: low-contrast humanist sans, set at 600 like the client.
+       Playfair Display is retained purely for book titles. */
+    --font-display: 'Cinzel', 'Playfair Display', serif;
+    --font-body: 'Barlow', system-ui, sans-serif;
 }
 
 body.dark-mode {
     /* Dark Mode: Midnight Reading Room */
     --bg-color: #121212;
+    --bg-deep: #0b0b0b;
     --surface-color: #1c1c1c;
     --text-main: #f0f0f0;
     --text-muted: #9a9a9a;
-    --primary-color: #d14a4a; /* Brighter crimson for dark bg */
-    --primary-hover: #e06666;
+    --primary-color: #d96060; /* Brighter crimson for dark bg — must still carry --surface-color text */
+    --primary-hover: #e07d7d;
+    --accent-color: #d9b45a;
     --border-color: #2e2e2e;
+    --rule-color: #3a3a3a;
+    --grain-opacity: 0.09;
+    --grain-blend: overlay;
     --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.5);
+    --shadow-book: 0 10px 22px -8px rgba(0, 0, 0, 0.75);
 }
 
 /* --- Global Resets --- */
-* { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
     background-color: var(--bg-color);
     color: var(--text-main);
     line-height: 1.6;
@@ -44,17 +63,23 @@ body {
 
 h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 600; line-height: 1.2; }
 
-/* --- Custom Cursor --- */
-.cursor-dot, .cursor-outline {
-    position: fixed; top: 0; left: 0; transform: translate(-50%, -50%);
-    border-radius: 50%; z-index: 9999; pointer-events: none;
-    transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+/* --- Paper Grain --- */
+/* A fixed noise layer so the background reads as laid paper instead of flat colour. */
+body::after {
+    content: ''; position: fixed; inset: 0; z-index: 9998; pointer-events: none;
+    opacity: var(--grain-opacity);
+    mix-blend-mode: var(--grain-blend);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 220px 220px;
 }
-.cursor-dot { width: 8px; height: 8px; background-color: var(--primary-color); }
-.cursor-outline { width: 40px; height: 40px; border: 1px solid var(--primary-color); }
-body.dark-mode .cursor-dot { background-color: var(--accent-color); }
-body.dark-mode .cursor-outline { border-color: var(--accent-color); }
-.cursor-outline.hover-active { width: 70px; height: 70px; background-color: rgba(139, 44, 44, 0.1); border-color: var(--accent-color); }
+
+/* --- Noscript --- */
+.noscript-note {
+    max-width: 700px; margin: 2rem auto; padding: 1.2rem 1.5rem;
+    border: 1px solid var(--border-color); border-left: 4px solid var(--primary-color);
+    background: var(--surface-color); color: var(--text-main); border-radius: 6px;
+    font-size: 0.9rem; text-align: center;
+}
 
 /* --- Progress Bar --- */
 #progress-bar {
@@ -66,111 +91,235 @@ body.dark-mode .cursor-outline { border-color: var(--accent-color); }
 /* --- Navigation --- */
 header {
     position: sticky; top: 0; z-index: 1000;
-    background-color: rgba(247, 245, 240, 0.85);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border-color);
+    background-color: rgba(239, 230, 212, 0.88);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-bottom: 3px double var(--rule-color);
 }
-body.dark-mode header { background-color: rgba(18, 18, 18, 0.85); }
+body.dark-mode header { background-color: rgba(18, 18, 18, 0.88); }
 
 nav { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 1rem 2rem; }
 .logo { font-size: 1.5rem; font-family: 'Playfair Display', serif; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; }
 .logo span { color: var(--primary-color); font-style: italic; }
 nav ul { list-style: none; display: flex; align-items: center; gap: 2rem; }
-nav a { text-decoration: none; color: var(--text-main); font-weight: 500; font-size: 0.9rem; transition: var(--transition); text-transform: uppercase; letter-spacing: 0.5px; }
+nav a { text-decoration: none; color: var(--text-main); font-family: var(--font-display); font-weight: 600; font-size: 0.72rem; transition: var(--transition); text-transform: uppercase; letter-spacing: 2.2px; }
 nav a:hover { color: var(--primary-color); }
-.icon-btn { background: none; border: none; font-size: 1.1rem; color: var(--text-main); cursor: pointer; padding: 0.5rem; border-radius: 50%; transition: var(--transition); }
-.icon-btn:hover { background-color: var(--border-color); transform: rotate(15deg); }
+.icon-btn { background: none; border: none; font-size: 1.1rem; color: var(--text-main); cursor: pointer; padding: 0.5rem; border-radius: 0; transition: var(--transition); }
+.icon-btn:hover { background-color: var(--border-color); color: var(--primary-color); transform: none; }
 
 /* --- Main Layout --- */
 main { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; min-height: 80vh; }
 .hidden { display: none !important; }
 
-/* Hero Section */
-.hero-section { text-align: center; margin-bottom: 4rem; position: relative; padding: 4rem 0; }
+/* Hero Section — a title page, not just a heading */
+.hero-section {
+    text-align: center; position: relative;
+    margin: -3rem -2rem 4.5rem; padding: 5rem 2.5rem 4.5rem;
+    background:
+        radial-gradient(130% 95% at 50% 0%, rgba(176, 132, 35, 0.18), transparent 62%),
+        linear-gradient(180deg, var(--bg-deep), transparent);
+    border-bottom: 3px double var(--rule-color);
+}
+.hero-section::before {
+    content: ''; position: absolute; inset: 1.1rem;
+    border: 1px solid var(--rule-color); border-radius: 4px; opacity: 0.5;
+    pointer-events: none;
+}
 .hero-content { position: relative; z-index: 2; }
-.eyebrow { display: inline-block; font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.5rem; font-weight: 500; }
-.hero-section h1 { font-size: 3.5rem; margin-bottom: 1.5rem; letter-spacing: -1px; }
-.hero-section p { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+.eyebrow { display: inline-block; font-family: var(--font-display); font-size: 0.68rem; letter-spacing: 5px; text-transform: uppercase; color: var(--accent-color); margin-bottom: 1.5rem; font-weight: 600; }
+/* Engraved capitals, wide tracking — the champion-page title treatment. */
+.hero-section h1 {
+    font-family: var(--font-display); font-weight: 700; font-size: clamp(2.1rem, 6vw, 3.4rem);
+    text-transform: uppercase; letter-spacing: 0.06em; line-height: 1.18;
+    margin-bottom: 1.2rem;
+}
+.hero-section p { color: var(--text-muted); font-size: 1.05rem; font-weight: 500; max-width: 620px; margin: 0 auto; }
+
+/* Letterpress ornament: — ❦ — */
+.ornament { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1.7rem; color: var(--accent-color); font-size: 1.15rem; }
+.ornament i { display: block; width: 96px; height: 1px; position: relative; background: linear-gradient(to right, transparent, var(--rule-color)); }
+.ornament i:last-child { background: linear-gradient(to left, transparent, var(--rule-color)); }
+.ornament i::after { content: ''; position: absolute; top: -2.5px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-color); }
+.ornament i:first-child::after { right: 0; }
+.ornament i:last-child::after { left: 0; }
 
 /* --- Toolbar --- */
 .library-toolbar { display: flex; gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center; justify-content: space-between; }
 .search-wrapper { flex-grow: 1; position: relative; max-width: 500px; }
 .search-wrapper i { position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; }
 .search-wrapper input {
-    width: 100%; padding: 1rem 1rem 1rem 3rem; border-radius: 50px;
-    border: 1px solid var(--border-color); background: var(--surface-color);
-    color: var(--text-main); font-family: 'Inter', sans-serif; font-size: 0.9rem;
-    transition: var(--transition); box-shadow: var(--shadow-sm);
+    width: 100%; padding: 1rem 1rem 1rem 3rem; border-radius: 5px;
+    border: 1px solid var(--rule-color); background: var(--surface-color);
+    color: var(--text-main); font-family: var(--font-body); font-size: 0.9rem;
+    transition: var(--transition);
+    box-shadow: inset 0 1px 3px rgba(74, 52, 28, 0.10);
 }
-.search-wrapper input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(139, 44, 44, 0.1); }
+.search-wrapper input:focus { outline: none; border-color: var(--primary-color); box-shadow: inset 0 1px 3px rgba(74, 52, 28, 0.10), 0 0 0 3px rgba(139, 44, 44, 0.14); }
+.search-wrapper input::placeholder { color: var(--text-muted); opacity: 0.75; }
 
 .styled-select {
-    padding: 1rem 1.5rem; border-radius: 50px; border: 1px solid var(--border-color);
+    padding: 1rem 1.5rem; border-radius: 5px; border: 1px solid var(--rule-color);
     background: var(--surface-color); color: var(--text-main);
-    font-family: 'Inter', sans-serif; font-size: 0.9rem; cursor: pointer;
-    transition: var(--transition); box-shadow: var(--shadow-sm); appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    font-family: var(--font-body); font-size: 0.9rem; cursor: pointer;
+    transition: var(--transition); appearance: none;
+    box-shadow: inset 0 1px 3px rgba(74, 52, 28, 0.10);
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236d6153' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em; padding-right: 3rem;
 }
 .styled-select:focus { outline: none; border-color: var(--primary-color); }
 
 /* --- Genre Filter Chips --- */
-.genre-filters { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 2rem; }
+.genre-filters { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.75rem; }
 .filter-chip {
-    padding: 0.5rem 1.2rem; border-radius: 50px;
-    background: transparent; border: 1px solid var(--border-color);
-    color: var(--text-muted); font-size: 0.8rem; font-weight: 500;
-    cursor: pointer; transition: var(--transition); text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 0.5rem 1.2rem; border-radius: 0;
+    background: transparent; border: 1px solid var(--rule-color);
+    color: var(--text-muted); font-family: var(--font-body);
+    font-size: 0.68rem; font-weight: 600; cursor: pointer;
+    text-transform: uppercase; letter-spacing: 1.6px;
+    transition: background-color 0.6s ease, color 0.4s ease, border-color 0.5s ease;
 }
-.filter-chip:hover { border-color: var(--primary-color); color: var(--primary-color); }
-.filter-chip.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+.filter-chip:hover { border-color: var(--accent-color); color: var(--primary-color); }
+.filter-chip.active {
+    background: var(--primary-color); color: var(--surface-color); border-color: var(--primary-color);
+    box-shadow: none;
+}
 
-.results-count { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
+.results-count {
+    display: flex; align-items: center; justify-content: center; gap: 1rem;
+    font-size: 0.72rem; color: var(--text-muted); margin-bottom: 2.25rem;
+    font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase;
+}
+.results-count::before, .results-count::after {
+    content: ''; flex: 1; max-width: 260px; height: 1px;
+    background: linear-gradient(to right, transparent, var(--rule-color));
+}
+.results-count::after { background: linear-gradient(to left, transparent, var(--rule-color)); }
 
 /* --- Book Grid --- */
-.book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 2.5rem; perspective: 1000px; }
+.book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 2.75rem 2.5rem; perspective: 1000px; padding-bottom: 1rem; }
 
 /* 3D Book Opening Animation */
 @keyframes bookOpen { 0% { transform: rotateY(0deg) scale(1); opacity: 1; } 100% { transform: rotateY(-90deg) scale(0.8); opacity: 0; } }
 .book-card.opening { animation: bookOpen 0.6s cubic-bezier(0.645, 0.045, 0.355, 1) forwards; transform-origin: left center; }
 
-/* --- Book Cards --- */
+/* --- Book Cards, built to look like books on a shelf --- */
 .book-card {
-    background-color: var(--surface-color); border-radius: 12px; overflow: hidden;
-    box-shadow: var(--shadow-sm); transition: var(--transition); cursor: pointer;
+    background-color: var(--surface-color); border-radius: 2px 7px 7px 2px;
+    box-shadow: var(--shadow-book); transition: var(--transition); cursor: pointer;
     display: flex; flex-direction: column; border: 1px solid var(--border-color);
     position: relative; animation: fadeInUp 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; opacity: 0;
 }
+/* Spine down the left edge */
+.book-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 7px; z-index: 6;
+    border-radius: 2px 0 0 2px;
+    background: linear-gradient(90deg,
+        rgba(0, 0, 0, 0.30) 0%,
+        var(--primary-color) 42%,
+        rgba(255, 255, 255, 0.20) 64%,
+        rgba(0, 0, 0, 0.16) 100%);
+}
+/* Stacked page edges on the right */
+.book-card::after {
+    content: ''; position: absolute; right: -3px; top: 9px; bottom: 9px; width: 3px; z-index: 1;
+    border-radius: 0 2px 2px 0;
+    background: repeating-linear-gradient(180deg, #fffdf6 0 1px, #ded0b1 1px 2px);
+    box-shadow: 1px 0 3px rgba(74, 52, 28, 0.22);
+}
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-.book-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(139, 44, 44, 0.2); border-color: var(--primary-color); }
-body.dark-mode .book-card:hover { box-shadow: 0 20px 40px rgba(209, 74, 74, 0.25); }
-.book-card img { width: 100%; height: 320px; object-fit: cover; border-bottom: 1px solid var(--border-color); transition: var(--transition); }
-.book-card:hover img { opacity: 0.9; transform: scale(1.03); }
+.book-card:hover {
+    transform: translateY(-12px) rotate(-0.6deg);
+    box-shadow: var(--shadow-lg); border-color: var(--rule-color);
+}
+body.dark-mode .book-card::after { background: repeating-linear-gradient(180deg, #d8d2c4 0 1px, #6d675c 1px 2px); }
+.book-card img {
+    width: 100%; height: 320px; object-fit: cover;
+    border-bottom: 1px solid var(--border-color); border-radius: 2px 7px 0 0;
+    transition: var(--transition);
+}
+.book-card:hover img { filter: brightness(1.04) saturate(1.06); }
 
-.book-info { padding: 1.5rem; display: flex; flex-direction: column; flex-grow: 1; position: relative; }
+.book-info { padding: 1.4rem 1.4rem 1.4rem 1.6rem; display: flex; flex-direction: column; flex-grow: 1; position: relative; }
 .book-info h3 { font-size: 1.2rem; margin-bottom: 0.3rem; }
-.book-info .author { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; font-style: italic; }
+.book-info .author { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; font-style: italic; }
+
+/* The card's action. This was bare inherited text with an arrow — the one
+   unstyled thing on a page of letterpress buttons, which is a good part of
+   why the card read as odd. It now follows the MinorButton recipe and
+   relabels itself by state: Read Story / Continue / Read Again. */
+.read-link {
+    margin-top: auto;
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    border: 2px solid var(--accent-color);
+    color: var(--primary-color); background: transparent;
+    padding: 0.5rem 0.6rem 0.4rem;
+    font-family: var(--font-body); font-weight: 600;
+    font-size: 0.7rem; letter-spacing: 1.4px; text-transform: uppercase;
+    transition: background-color 0.6s ease, color 0.4s ease, border-color 0.5s ease;
+}
+.read-link i { font-size: 0.62rem; transition: transform 0.4s ease; }
+.book-card:hover .read-link { background-color: var(--primary-color); border-color: var(--primary-color); color: var(--surface-color); }
+.book-card:hover .read-link i { transform: translateX(3px); }
+
+/* Rating — shown once a story is finished. Goodreads and StoryGraph both lead
+   with your stars rather than a "Read" label, because that is the real proof. */
+.rating-row { display: flex; justify-content: center; margin: 0.2rem 0 0.9rem; }
+.star-rating { display: inline-flex; gap: 0.3rem; }
+.star-rating .star {
+    background: none; border: none; padding: 0; line-height: 1; cursor: pointer;
+    font-size: 0.82rem; color: var(--border-color);
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+body.dark-mode .star-rating .star { color: #575757; }
+.star-rating .star.on { color: var(--accent-color); }
+.star-rating .star:hover { transform: scale(1.2); }
+.star-rating .star:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; }
 
 /* Favorite Heart Button */
 .fav-btn {
     position: absolute; top: 15px; right: 15px;
-    background: rgba(255,255,255,0.9); border: none; border-radius: 50%;
+    background: rgba(255,255,255,0.9); border: 1px solid var(--rule-color); border-radius: 0;
     width: 36px; height: 36px; display: flex; justify-content: center; align-items: center;
     color: var(--text-muted); cursor: pointer; transition: var(--transition);
     box-shadow: var(--shadow-sm); z-index: 20; opacity: 0; transform: translateY(-5px);
 }
 .book-card:hover .fav-btn { opacity: 1; transform: translateY(0); }
-.fav-btn:hover { background: var(--primary-color); color: white; }
-.fav-btn.active { background: var(--primary-color); color: white; opacity: 1; transform: translateY(0); }
+.fav-btn:hover { background: var(--primary-color); color: var(--surface-color); }
+.fav-btn.active { background: var(--primary-color); color: var(--surface-color); opacity: 1; transform: translateY(0); }
 body.dark-mode .fav-btn { background: rgba(0,0,0,0.6); }
 
-/* --- Buttons --- */
-.btn { background-color: var(--primary-color); color: #ffffff; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; text-align: center; transition: all 0.2s ease; width: 100%; }
-.btn:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
-.btn:active { transform: scale(0.97) translateY(0); }
-.outline-btn { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); width: auto; margin-top: 1rem; }
-.outline-btn:hover { background: var(--primary-color); color: white; }
-.back-btn { width: auto; background-color: transparent; color: var(--text-muted); padding: 0; margin-bottom: 2rem; }
+/* --- Buttons: Riot's MinorButton recipe. Squared, a 2px gold rule, caps set in
+   Barlow 600 with wide tracking, and a slow invert on hover instead of a lift. --- */
+.btn {
+    background-color: var(--surface-color);
+    color: var(--primary-color);
+    border: 2px solid var(--accent-color);
+    border-radius: 0;
+    padding: 0.78rem 1.6rem 0.68rem;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    text-align: center;
+    transition: background-color 0.6s ease, color 0.4s ease, border-color 0.5s ease;
+    width: 100%;
+    box-shadow: 2px 2px 30px 0 rgba(0, 0, 0, 0.18);
+}
+.btn:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--surface-color);
+    transform: none;
+}
+.btn:active { background-color: var(--primary-hover); border-color: var(--primary-hover); transform: none; }
+.outline-btn {
+    background: transparent; color: var(--primary-color);
+    border: 2px solid var(--accent-color); box-shadow: none;
+    width: auto; margin-top: 1rem;
+}
+.outline-btn:hover { background: var(--primary-color); border-color: var(--primary-color); color: var(--surface-color); }
+.back-btn { width: auto; background-color: transparent; color: var(--text-muted); border: none; box-shadow: none; padding: 0; margin-bottom: 2rem; }
 .back-btn:hover { color: var(--primary-color); background: transparent; transform: translateX(-5px); }
 .back-btn:active { transform: scale(0.95) translateX(-5px); }
 
@@ -181,74 +330,185 @@ body.dark-mode .fav-btn { background: rgba(0,0,0,0.6); }
 .synopsis-wrapper:not(.hidden) .synopsis-box { opacity: 1; transform: translateY(0); }
 
 /* --- Reader View --- */
-.story-reader { background-color: var(--surface-color); padding: 4rem; border-radius: 16px; box-shadow: var(--shadow-md); max-width: 800px; margin: 0 auto; border: 1px solid var(--border-color); color: #ffffff; transition: background-color 0.8s ease, background-image 0.8s ease; position: relative; overflow: hidden; animation: fadeIn 0.5s ease forwards; }
+/* The reader carries long text, so it has to stay readable in both themes:
+   a page of paper by day, a dark wash at night. JS supplies the cover colour
+   as --reader-tint on background-color; the theme supplies the wash above it
+   as background-image. Keep those two apart - putting a bare <color> into a
+   background-image layer makes the whole declaration invalid in some
+   browsers, which is what left the day-mode reader white-on-white. */
+.story-reader {
+    background-color: var(--reader-tint, #2a2a2a);
+    background-image: linear-gradient(rgba(24,18,18,0.80), rgba(24,18,18,0.88));
+    padding: 4rem; border-radius: 16px; box-shadow: var(--shadow-md);
+    max-width: 800px; margin: 0 auto; border: 1px solid var(--border-color);
+    color: #ffffff;
+    transition: background-color 0.8s ease, background-image 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
+    position: relative; overflow: hidden; animation: fadeIn 0.5s ease forwards;
+}
+body:not(.dark-mode) .story-reader {
+    background-image: linear-gradient(rgba(253,250,242,0.90), rgba(245,238,224,0.95));
+    color: var(--text-main);
+    box-shadow: var(--shadow-lg);
+}
 @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
 .story-header { text-align: center; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 2rem; margin-bottom: 2rem; }
-.genre-tag { display: inline-block; background-color: var(--primary-color); color: white; padding: 0.3rem 1rem; border-radius: 50px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem; }
-.story-header h2 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-.author-line { color: rgba(255,255,255,0.8); font-style: italic; }
+body:not(.dark-mode) .story-header { border-bottom-color: var(--rule-color); }
+.genre-tag { display: inline-block; background-color: var(--primary-color); color: var(--surface-color); padding: 0.32rem 1rem; border-radius: 0; font-family: var(--font-body); font-weight: 600; font-size: 0.64rem; text-transform: uppercase; letter-spacing: 2.4px; margin-bottom: 1rem; }
+.story-header h2 {
+    font-family: var(--font-display); font-weight: 700; font-size: clamp(1.5rem, 4vw, 2.15rem);
+    text-transform: uppercase; letter-spacing: 0.09em; line-height: 1.25;
+    margin-bottom: 0.7rem;
+}
+.author-line { color: rgba(255,255,255,0.8); font-style: italic; font-weight: 500; letter-spacing: 0.3px; }
+body:not(.dark-mode) .author-line { color: var(--text-muted); }
 .story-img { width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; margin-bottom: 2.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-.story-content h3 { font-size: 1.8rem; margin-bottom: 1.5rem; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-.story-content p { margin-bottom: 1.5rem; font-size: 1.1rem; color: #f0f0f0; line-height: 1.8; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
-
-/* --- Dashboard --- */
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
-
-.stat-card {
-    background-color: var(--surface-color); border: 1px solid var(--border-color);
-    border-radius: 16px; padding: 1.8rem; box-shadow: var(--shadow-sm);
-    transition: var(--transition); animation: fadeInUp 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; opacity: 0;
+body:not(.dark-mode) .story-img { box-shadow: 0 10px 24px -8px rgba(60,45,30,0.45); }
+/* Chapter heads: centred engraved capitals in gold, the way Universe sets them. */
+.story-content h3 {
+    font-family: var(--font-display); font-weight: 600; font-size: 1rem;
+    text-transform: uppercase; letter-spacing: 3px; text-align: center;
+    margin-bottom: 1.9rem; color: var(--accent-color); text-shadow: none;
 }
-.stat-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-md); border-color: var(--primary-color); }
-.stat-card i { font-size: 1.4rem; color: var(--primary-color); }
-.stat-card .stat-value { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 700; line-height: 1; margin: 0.9rem 0 0.4rem; }
-.stat-card .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); font-weight: 500; }
-
-.progress-card { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
-.ring {
-    position: relative; width: 104px; height: 104px; border-radius: 50%;
-    background: conic-gradient(var(--primary-color) var(--p, 0deg), var(--border-color) 0deg);
-    display: flex; align-items: center; justify-content: center; margin-bottom: 1.1rem;
-    transition: background 0.6s ease;
+/* The reading column: Barlow stands in for Spiegel at the same setting Riot
+   uses for its lore — 18px, 1.8 leading, a full em between paragraphs. */
+.story-content p {
+    font-family: var(--font-body); font-weight: 500; font-size: 1.125rem;
+    line-height: 1.8; color: #f0f0f0; margin-bottom: 0;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
 }
-.ring::after { content: ''; position: absolute; inset: 11px; border-radius: 50%; background-color: var(--surface-color); }
-.ring span { position: relative; z-index: 1; font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.4rem; }
+.story-content p + p { margin-top: 1em; }
+body:not(.dark-mode) .story-content h3 { color: var(--primary-color); }
+body:not(.dark-mode) .story-content p { color: #33302a; text-shadow: none; }
+
+/* --- Story meta / loading / copyright note --- */
+.story-meta { margin-top: 0.7rem; font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.62); }
+.loading-line { font-style: italic; color: rgba(255,255,255,0.7) !important; }
+.text-note {
+    margin-top: 2rem; padding-top: 1.5rem;
+    border-top: 1px dashed rgba(255,255,255,0.35);
+    font-size: 0.95rem; font-style: italic; color: rgba(255,255,255,0.78) !important;
+}
+body:not(.dark-mode) .story-meta,
+body:not(.dark-mode) .loading-line { color: var(--text-muted) !important; }
+body:not(.dark-mode) .text-note { color: var(--text-muted) !important; border-top-color: var(--rule-color); }
+body:not(.dark-mode) .synopsis-box { background: rgba(255,255,255,0.72); }
+
+/* --- Dashboard: the reader's ledger ---
+   Squared, ruled and typographic, in the same letterpress hand as the rest of
+   the site. No rounded cards, no floating shadows, no gradient pills. */
+.ledger {
+    display: grid; grid-template-columns: 1.7fr 1fr 1fr 1fr;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-top: 3px double var(--rule-color);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2.5rem;
+}
+.ledger-cell { padding: 1.9rem 1.7rem; border-left: 1px solid var(--rule-color); min-width: 0; }
+.ledger-cell:first-child { border-left: none; }
+.ledger-label {
+    display: block; font-size: 0.62rem; font-weight: 600;
+    letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-muted);
+}
+.ledger-value {
+    font-family: 'Playfair Display', serif; font-size: 3rem; font-weight: 700;
+    line-height: 1; margin: 0.85rem 0 0.35rem; color: var(--text-main);
+    font-variant-numeric: oldstyle-nums; letter-spacing: -1px;
+}
+.ledger-foot {
+    display: block; font-size: 0.64rem; letter-spacing: 1.4px;
+    text-transform: uppercase; color: var(--text-muted);
+}
+
+/* Printed gauge: a ruled scale, not a donut. The tick marks show through the
+   unfilled part so the remainder reads as a measuring rule. */
+.gauge {
+    height: 18px; margin: 1.1rem 0 0.6rem; position: relative; overflow: hidden;
+    background-color: var(--bg-deep);
+    background-image: repeating-linear-gradient(90deg, var(--rule-color) 0 1px, transparent 1px 6%);
+    border: 1px solid var(--rule-color);
+}
+.gauge-fill {
+    position: absolute; inset: 0 auto 0 0; background: var(--primary-color);
+    box-shadow: inset -4px 0 0 var(--primary-hover);
+    transition: width 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
 
 .dashboard-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem; }
 .panel {
-    background-color: var(--surface-color); border: 1px solid var(--border-color);
-    border-radius: 16px; padding: 2rem; box-shadow: var(--shadow-sm); animation: fadeInUp 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; opacity: 0;
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-top: 3px double var(--rule-color);
+    padding: 2rem; box-shadow: var(--shadow-sm); min-width: 0;
 }
-.panel h3 { font-size: 1.15rem; margin-bottom: 1.6rem; display: flex; align-items: center; gap: 0.6rem; }
-.panel h3 i { color: var(--primary-color); }
-
-.bar-row { margin-bottom: 1.1rem; }
-.bar-row:last-child { margin-bottom: 0; }
-.bar-head { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.45rem; }
-.bar-head .count { color: var(--text-muted); }
-.bar-track { height: 8px; background-color: var(--border-color); border-radius: 50px; overflow: hidden; }
-.bar-fill {
-    height: 100%; border-radius: 50px;
-    background: linear-gradient(to right, var(--primary-color), var(--accent-color));
-    transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+.panel-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.9rem; margin-bottom: 1.3rem; border-bottom: 1px solid var(--rule-color);
+}
+.panel h3 { font-family: var(--font-display); font-weight: 600; font-size: 0.88rem; margin: 0; padding: 0; border: none; display: block; letter-spacing: 3px; text-transform: uppercase; color: var(--text-main); }
+.panel h3 i { color: var(--primary-color); margin-right: 0.2rem; }
+.panel-fig {
+    flex-shrink: 0; font-size: 0.6rem; font-weight: 600;
+    letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent-color);
 }
 
+/* Genre breakdown: a printed ledger chart. Columns are key, bar, figure. */
+.chart-head, .chart-row {
+    display: grid; grid-template-columns: 7.6rem 1fr 3.4rem;
+    gap: 1rem; align-items: center;
+}
+.chart-head {
+    font-size: 0.6rem; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text-muted); padding-bottom: 0.5rem;
+}
+.chart-head span:last-child { text-align: right; }
+.chart-rule { height: 3px; border-top: 1px solid var(--rule-color); border-bottom: 1px solid var(--rule-color); margin-bottom: 0.15rem; }
+.chart-row { padding: 0.6rem 0; border-bottom: 1px solid var(--rule-color); }
+.chart-row:last-child { border-bottom: none; }
+.chart-key {
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 1.1px;
+    text-transform: uppercase; color: var(--text-main); overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+}
+.chart-bar {
+    height: 13px; position: relative; overflow: hidden;
+    background-color: var(--bg-deep);
+    background-image: repeating-linear-gradient(90deg, var(--rule-color) 0 1px, transparent 1px 12px);
+    border: 1px solid var(--rule-color);
+}
+.chart-bar-fill {
+    position: absolute; inset: 0 auto 0 0; background: var(--primary-color);
+    box-shadow: inset -3px 0 0 var(--primary-hover);
+    transition: width 0.9s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.chart-row.is-empty .chart-bar-fill { background: var(--rule-color); box-shadow: none; }
+.chart-fig {
+    text-align: right; font-size: 0.82rem; font-weight: 600;
+    font-variant-numeric: tabular-nums; color: var(--text-muted);
+}
+
+/* Recently read: an index of numbered entries, not a feed. */
 .recent-item {
-    display: flex; align-items: center; gap: 1rem; padding: 0.9rem 0;
-    border-bottom: 1px solid var(--border-color); transition: var(--transition); cursor: pointer;
+    display: flex; align-items: center; gap: 1rem; padding: 0.85rem 0;
+    border-bottom: 1px solid var(--rule-color); cursor: pointer;
 }
 .recent-item:last-child { border-bottom: none; }
-.recent-item:hover .recent-num { background-color: var(--primary-color); color: #ffffff; }
 .recent-num {
-    width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%;
-    background-color: var(--border-color); color: var(--text-muted);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.85rem; font-weight: 600; transition: var(--transition);
+    width: 30px; height: 30px; flex-shrink: 0;
+    border: 1px solid var(--rule-color); background: transparent;
+    color: var(--text-muted); font-family: 'Playfair Display', serif;
+    font-weight: 700; font-size: 0.8rem; display: flex;
+    align-items: center; justify-content: center; transition: var(--transition);
 }
+.recent-item:hover .recent-num { background-color: var(--primary-color); border-color: var(--primary-color); color: var(--surface-color); }
+.recent-item:hover .recent-meta h4 { color: var(--primary-color); }
 .recent-meta { flex-grow: 1; min-width: 0; }
-.recent-meta h4 { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 600; }
-.recent-meta p { font-size: 0.8rem; color: var(--text-muted); font-style: italic; }
-.recent-item .genre-tag { margin-bottom: 0; font-size: 0.6rem; padding: 0.25rem 0.8rem; }
+.recent-meta h4 {
+    font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.2s ease;
+}
+.recent-meta p { font-size: 0.78rem; color: var(--text-muted); font-style: italic; }
+.recent-item .genre-tag { margin-bottom: 0; font-size: 0.58rem; padding: 0.25rem 0.75rem; }
 
 .dash-empty { text-align: center; color: var(--text-muted); padding: 2.5rem 1rem; }
 .dash-empty i { font-size: 2.2rem; opacity: 0.3; margin-bottom: 0.8rem; display: block; }
@@ -257,15 +517,29 @@ body.dark-mode .fav-btn { background: rgba(0,0,0,0.6); }
 .reset-btn { width: auto; display: inline-flex; align-items: center; gap: 0.6rem; }
 
 /* --- Read Badge --- */
+/* Top-left, small and flat — the convention every tracker uses (Wattpad's
+   "Completed", Goodreads' shelf tag). It used to sit bottom-left with a heavy
+   plate and shadow, which put it on top of the cover's own title and made it
+   the loudest thing on the card. It also said "Read", which the action link
+   below it also said. Now: "Finished" here, a state-aware verb down there. */
 .read-badge {
-    position: absolute; bottom: 15px; left: 15px; z-index: 20;
-    background-color: var(--primary-color); color: #ffffff;
-    padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.68rem;
-    text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
-    box-shadow: var(--shadow-sm); display: inline-flex; align-items: center; gap: 0.4rem;
+    position: absolute; top: 15px; left: 15px; z-index: 20;
+    background-color: rgba(10, 10, 12, 0.76);
+    color: #d9b45a; border: 1px solid #d9b45a;
+    padding: 0.26rem 0.65rem; border-radius: 0; font-family: var(--font-body);
+    font-size: 0.56rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
 }
 
-footer { text-align: center; padding: 3rem 2rem; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border-color); margin-top: 4rem; }
+/* --- Reader Footer / Next Story --- */
+.reader-footer {
+    margin-top: 3rem; padding-top: 2rem; border-top: 3px double var(--rule-color);
+    display: flex; justify-content: flex-end;
+}
+.next-btn { width: auto; display: inline-flex; align-items: center; gap: 0.6rem; }
+
+footer { text-align: center; padding: 3rem 2rem; color: var(--text-muted); font-size: 0.85rem; border-top: 3px double var(--rule-color); margin-top: 4rem; }
 
 /* --- Empty State --- */
 .empty-state { grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
@@ -273,13 +547,22 @@ footer { text-align: center; padding: 3rem 2rem; color: var(--text-muted); font-
 .empty-state h3 { font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-main); }
 
 /* --- Responsive --- */
+@media (max-width: 1024px) {
+    /* Four ledger cells across is too tight once the viewport narrows. */
+    .ledger { grid-template-columns: 1fr 1fr; }
+    .ledger-cell { border-top: 1px solid var(--rule-color); }
+    .ledger-cell:nth-child(-n+2) { border-top: none; }
+    .ledger-cell:nth-child(odd) { border-left: none; }
+}
+
 @media (max-width: 768px) {
-    * { cursor: auto; }
-    .cursor-dot, .cursor-outline { display: none; }
     nav { padding: 1rem; }
     nav ul { gap: 1rem; }
     nav a { font-size: 0.8rem; }
     .hero-section h1 { font-size: 2.2rem; }
+    .hero-section { margin: -2rem -1rem 3rem; padding: 3.5rem 1.5rem 3rem; }
+    .hero-section::before { inset: 0.6rem; }
+    .ornament i { width: 60px; }
     .library-toolbar { flex-direction: column; align-items: stretch; }
     .search-wrapper { max-width: 100%; }
     .book-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.5rem; }
@@ -287,11 +570,12 @@ footer { text-align: center; padding: 3rem 2rem; color: var(--text-muted); font-
     .book-info { padding: 1rem; }
     .book-info h3 { font-size: 1rem; }
     .story-reader { padding: 2rem 1.5rem; }
-    .story-header h2 { font-size: 1.8rem; }
+    .story-header h2 { font-size: 1.35rem; letter-spacing: 0.07em; }
     .dashboard-panels { grid-template-columns: 1fr; }
     .panel { padding: 1.5rem; }
-    .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-    .stat-card { padding: 1.3rem; }
-    .stat-card .stat-value { font-size: 2.1rem; }
+    .ledger-cell { padding: 1.3rem 1.1rem; }
+    .ledger-value { font-size: 2.2rem; }
+    .chart-head, .chart-row { grid-template-columns: 5.4rem 1fr 2.8rem; gap: 0.7rem; }
+    .chart-key { font-size: 0.6rem; letter-spacing: 0.8px; }
     .recent-item .genre-tag { display: none; }
 }
