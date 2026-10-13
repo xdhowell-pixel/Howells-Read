@@ -692,6 +692,34 @@ document.getElementById('sort-select').addEventListener('change', (e) => {
     renderBooks();
 });
 
+// --- Mobile menu ---
+// On narrow screens the links move into a panel so the header stops
+// overflowing. The button is display:none on desktop, so that layout is
+// untouched by any of this.
+const navToggle = document.getElementById('nav-toggle');
+
+function setNavOpen(open) {
+    document.querySelector('header').classList.toggle('nav-open', open);
+    if (!navToggle) return;
+    navToggle.setAttribute('aria-expanded', String(open));
+    navToggle.querySelector('i').className = open ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+}
+
+if (navToggle) {
+    navToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setNavOpen(!document.querySelector('header').classList.contains('nav-open'));
+    });
+    document.querySelectorAll('#nav-menu a').forEach(link =>
+        link.addEventListener('click', () => setNavOpen(false)));
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest || !e.target.closest('nav')) setNavOpen(false);
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') setNavOpen(false);
+    });
+}
+
 // --- Story Text Loader ---
 // Texts live one-per-file in texts/. They are fetched only when a story is
 // opened, so the library page stays fast no matter how long the stories are.

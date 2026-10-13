@@ -106,6 +106,15 @@ nav a:hover { color: var(--primary-color); }
 .icon-btn { background: none; border: none; font-size: 1.1rem; color: var(--text-main); cursor: pointer; padding: 0.5rem; border-radius: 0; transition: var(--transition); }
 .icon-btn:hover { background-color: var(--border-color); color: var(--primary-color); transform: none; }
 
+/* Mobile menu button. Nothing on desktop -- the links stay a plain row there,
+   so the toggle is purely additive and can never break desktop navigation. */
+.nav-toggle {
+    display: none; background: none; border: 1px solid var(--text-muted);
+    color: var(--text-main); font-size: 1rem; padding: 0.45rem 0.65rem;
+    cursor: pointer; border-radius: 0; transition: var(--transition);
+}
+.nav-toggle:hover { border-color: var(--accent-color); color: var(--primary-color); }
+
 /* --- Main Layout --- */
 main { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; min-height: 80vh; }
 .hidden { display: none !important; }
@@ -178,7 +187,8 @@ main { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; min-height: 80vh; 
 .shelf-tab {
     background: transparent; border: none; border-bottom: 2px solid transparent;
     margin-bottom: -2px; padding: 0.7rem 1.4rem 0.62rem; cursor: pointer;
-    font-family: var(--font-display); font-size: 0.8rem; line-height: 1;
+    font-family: var(--font-display); font-weight: 600;
+    font-size: 0.8rem; line-height: 1;
     text-transform: uppercase; letter-spacing: 2.4px; color: var(--text-muted);
     display: inline-flex; align-items: center; gap: 0.6rem;
     transition: color 0.4s ease, border-color 0.5s ease;
@@ -585,21 +595,73 @@ footer { text-align: center; padding: 3rem 2rem; color: var(--text-muted); font-
 }
 
 @media (max-width: 768px) {
-    nav { padding: 1rem; }
-    nav ul { gap: 1rem; }
-    nav a { font-size: 0.8rem; }
-    .hero-section h1 { font-size: 2.2rem; }
-    .hero-section { margin: -2rem -1rem 3rem; padding: 3.5rem 1.5rem 3rem; }
-    .hero-section::before { inset: 0.6rem; }
-    .ornament i { width: 60px; }
-    .library-toolbar { flex-direction: column; align-items: stretch; }
+    /* --- Navigation ---
+       Three links at 0.72rem with 2.2px tracking plus the theme toggle come to
+       roughly 400px, which does not fit in 326px of space: the labels wrapped
+       mid-phrase and Dashboard and the toggle were pushed off-screen entirely.
+       The links now live in a panel opened by a menu button. On desktop the
+       button stays display:none and the links are an ordinary row, so nothing
+       there changes. */
+    nav { padding: 0.6rem 1rem; flex-wrap: wrap; }
+    .logo { font-size: 1.15rem; gap: 7px; }
+    .nav-toggle { display: block; }
+    nav ul {
+        display: none; order: 3; width: 100%; flex-direction: column;
+        align-items: stretch; gap: 0; margin-top: 0.55rem; padding-top: 0.2rem;
+        border-top: 1px solid var(--rule-color);
+    }
+    header.nav-open nav ul { display: flex; }
+    nav ul li { border-bottom: 1px solid var(--rule-color); }
+    nav ul li:last-child { border-bottom: none; display: flex; justify-content: flex-end; }
+    nav a { display: block; padding: 0.85rem 0.25rem; font-size: 0.72rem; }
+    .icon-btn { padding: 0.85rem 0.5rem; }
+
+    /* --- Page frame: tighter gutters, and the title page stops eating half
+           the screen before the first cover --- */
+    main { padding: 2rem 1.25rem; }
+    .hero-section { margin: -1.25rem -1.25rem 2.25rem; padding: 2.75rem 1.25rem 2.5rem; }
+    .hero-section::before { inset: 0.45rem; }
+    .hero-section h1 { font-size: 1.75rem; }
+    .eyebrow { font-size: 0.56rem; letter-spacing: 3.4px; margin-bottom: 1.1rem; }
+    .hero-section p { font-size: 0.92rem; }
+    .ornament i { width: 52px; }
+
+    /* --- Toolbar --- */
+    .library-toolbar { flex-direction: column; align-items: stretch; gap: 0.9rem; margin-bottom: 1.5rem; }
     .search-wrapper { max-width: 100%; }
-    .book-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.5rem; }
-    .book-card img { height: 240px; }
-    .book-info { padding: 1rem; }
-    .book-info h3 { font-size: 1rem; }
-    .story-reader { padding: 2rem 1.5rem; }
+    .styled-select { width: 100%; }
+
+    /* --- Shelf tabs: fit as many as will go on one line --- */
+    .shelf-tabs { margin-bottom: 1.4rem; }
+    .shelf-tab { padding: 0.6rem 0.8rem 0.5rem; font-size: 0.68rem; letter-spacing: 1.3px; gap: 0.35rem; }
+    .tab-count { font-size: 0.55rem; padding: 0.15rem 0.35rem; }
+
+    /* --- Chips: less air between them --- */
+    .genre-filters { gap: 0.45rem; margin-bottom: 1.4rem; }
+    .filter-chip { padding: 0.4rem 0.8rem; font-size: 0.6rem; letter-spacing: 1.1px; }
+
+    /* --- Cards: two across instead of one. The old minmax(160px) could not
+           fit two columns in 326px, so every story took a whole screen. --- */
+    .book-grid { grid-template-columns: repeat(2, 1fr); gap: 1.4rem 1.1rem; }
+    .book-card img { height: 185px; }
+    .book-info { padding: 0.85rem 0.85rem 0.9rem 1rem; }
+    .book-info h3 { font-size: 0.88rem; }
+    .book-info .author { font-size: 0.72rem; margin-bottom: 0.8rem; }
+    .read-link { font-size: 0.58rem; letter-spacing: 0.9px; padding: 0.45rem 0.4rem 0.35rem; gap: 0.35rem; }
+    .read-link i { font-size: 0.5rem; }
+    .read-badge { top: 8px; left: 8px; font-size: 0.48rem; letter-spacing: 1.1px; padding: 0.2rem 0.42rem; gap: 0.3rem; }
+    .fav-btn { top: 8px; right: 8px; padding: 0.4rem; font-size: 0.75rem; }
+    .rating-row { margin: 0.1rem 0 0.7rem; }
+    .star-rating { gap: 0.22rem; }
+    .star-rating .star { font-size: 0.72rem; }
+    .results-count { font-size: 0.62rem; letter-spacing: 1.8px; margin-bottom: 1.75rem; }
+    .results-count::before, .results-count::after { max-width: 40px; }
+
+    /* --- Reader --- */
+    .story-reader { padding: 1.75rem 1.25rem; }
     .story-header h2 { font-size: 1.35rem; letter-spacing: 0.07em; }
+
+    /* --- Dashboard --- */
     .dashboard-panels { grid-template-columns: 1fr; }
     .panel { padding: 1.5rem; }
     .ledger-cell { padding: 1.3rem 1.1rem; }

@@ -43,7 +43,11 @@
             <div class="logo" onclick="showLibrary()">
                 <i class="fa-solid fa-feather-pointed"></i> Howell<span>Reads</span>
             </div>
-            <ul>
+            <button class="nav-toggle" id="nav-toggle" aria-label="Menu"
+                    aria-expanded="false" aria-controls="nav-menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <ul id="nav-menu">
                 <li><a href="#" onclick="showLibrary()">The Collection</a></li>
                 <li><a href="#" onclick="showBookshelf()"><i class="fa-solid fa-bookmark"></i> My Shelf</a></li>
                 <li><a href="#" onclick="showDashboard()"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
