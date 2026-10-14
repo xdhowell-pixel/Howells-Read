@@ -615,7 +615,7 @@ body:not(.dark-mode) .synopsis-box { background: rgba(255,255,255,0.72); }
    Squared, ruled and typographic, in the same letterpress hand as the rest of
    the site. No rounded cards, no floating shadows, no gradient pills. */
 .ledger {
-    display: grid; grid-template-columns: 1.7fr 1fr 1fr 1fr;
+    display: grid; grid-template-columns: 1.7fr 1fr 1fr 1fr 1fr;
     background: var(--surface-color);
     border: 1px solid var(--border-color);
     border-top: 3px double var(--rule-color);
@@ -774,6 +774,9 @@ footer { text-align: center; padding: 1.75rem 2rem; color: var(--text-muted); fo
     .ledger-cell { border-top: 1px solid var(--rule-color); }
     .ledger-cell:nth-child(-n+2) { border-top: none; }
     .ledger-cell:nth-child(odd) { border-left: none; }
+    /* Five tiles into two columns leaves the streak alone in a half-empty row,
+       so it takes the full width rather than floating there. */
+    .ledger-cell:nth-child(5) { grid-column: 1 / -1; }
 }
 
 @media (max-width: 768px) {

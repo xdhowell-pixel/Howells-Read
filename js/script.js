@@ -500,12 +500,84 @@ function showLibrary() {
     showView('library-view');
 }
 
+// --- Reading streak ---
+// The history is a list of story ids in order and carries no dates at all, so
+// it cannot answer "did you read today". The streak keeps its own record: one
+// ISO date per day you showed up, deduped, oldest dropped first.
+const ACTIVITY_KEY = 'howell-reads-activity';
+const ACTIVITY_CAP = 400;
+
+function loadActivityDates() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(ACTIVITY_KEY) || '[]');
+        if (!Array.isArray(raw)) return [];
+        return [...new Set(raw.filter(d => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)))].sort();
+    } catch (e) {
+        return [];
+    }
+}
+
+let activityDates = loadActivityDates();
+
+function isoDay(offsetDays, from) {
+    let d;
+    if (typeof from === 'string') {
+        // Parse as a local calendar date. new Date("2026-10-14") is UTC
+        // midnight, which in a negative-offset zone is still the 13th locally,
+        // and the arithmetic would then return the 14th instead of the 15th.
+        const [y, m, dd] = from.split('-').map(Number);
+        d = new Date(y, m - 1, dd);
+    } else {
+        d = new Date();
+    }
+    d.setDate(d.getDate() + (offsetDays || 0));
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function markActivity() {
+    const today = isoDay(0);
+    if (activityDates[activityDates.length - 1] === today) return;
+    activityDates.push(today);
+    activityDates.sort();
+    if (activityDates.length > ACTIVITY_CAP) activityDates = activityDates.slice(-ACTIVITY_CAP);
+    localStorage.setItem(ACTIVITY_KEY, JSON.stringify(activityDates));
+}
+
+// A streak survives a day you have not had yet: yesterday's reading still
+// counts as unbroken at 9am, and it only lapses once a whole day is missed.
+function currentStreak() {
+    if (!activityDates.length) return 0;
+    const days = new Set(activityDates);
+    let cursor;
+    if (days.has(isoDay(0))) cursor = isoDay(0);
+    else if (days.has(isoDay(-1))) cursor = isoDay(-1);
+    else return 0;
+
+    let run = 0;
+    while (days.has(cursor)) {
+        run++;
+        cursor = isoDay(-1, cursor);
+    }
+    return run;
+}
+
+function bestStreak() {
+    let best = 0, run = 0, prev = null;
+    for (const day of activityDates) {
+        run = (prev !== null && isoDay(1, prev) === day) ? run + 1 : 1;
+        if (run > best) best = run;
+        prev = day;
+    }
+    return best;
+}
+
 // --- Reading History ---
 function markAsRead(id) {
     readingHistory = readingHistory.filter(bookId => bookId !== id);
     readingHistory.unshift(id);
     if (readingHistory.length > 60) readingHistory = readingHistory.slice(0, 60);
     localStorage.setItem('howell-reads-history', JSON.stringify(readingHistory));
+    markActivity();
 }
 
 // --- Read state ---
@@ -601,6 +673,14 @@ function renderDashboard() {
     document.getElementById('dash-saved').textContent = savedCount;
     document.getElementById('dash-genres').textContent = genreCount;
 
+    // --- Reading streak ---
+    const streak = currentStreak();
+    const best = Math.max(bestStreak(), streak);
+    document.getElementById('dash-streak').textContent = streak;
+    document.getElementById('dash-streak-foot').textContent =
+        streak === 0 ? 'open a story to begin'
+            : `${streak === 1 ? 'day' : 'days'} in a row \u00b7 best ${best}`;
+
     // --- Genre ledger: bar = the genre's share of the catalogue, figure = what you've read ---
     const genreTotals = {};
     allBooks.forEach(b => { genreTotals[b.genre] = (genreTotals[b.genre] || 0) + 1; });
@@ -657,10 +737,12 @@ function resetStats() {
     readingProgress = {};
     ratings = {};
     favorites = [];
+    activityDates = [];
     localStorage.removeItem('howell-reads-history');
     localStorage.removeItem('howell-reads-progress');
     localStorage.removeItem('howell-reads-ratings');
     localStorage.removeItem('howell-reads-favorites');
+    localStorage.removeItem(ACTIVITY_KEY);
     renderDashboard();
 }
 
