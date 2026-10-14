@@ -59,6 +59,12 @@ body {
     transition: background-color 0.4s ease, color 0.4s ease;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+    /* Sticky footer the standard way: main grows to fill what the viewport
+       has spare, so the footer always lands on the bottom edge instead of
+       floating above a strip of empty page. */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 600; line-height: 1.2; }
@@ -116,7 +122,14 @@ nav a:hover { color: var(--primary-color); }
 .nav-toggle:hover { border-color: var(--accent-color); color: var(--primary-color); }
 
 /* --- Main Layout --- */
-main { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; min-height: 80vh; }
+/* flex: 1 replaces the old min-height: 80vh, which was the blank space at the
+   bottom of short pages. 80vh of main plus a footer overshot the viewport, so
+   the footer floated with dead page beneath it; main now absorbs exactly the
+   slack there is and no more.
+   width: 100% is required, not optional: as a flex item with auto margins main
+   sizes to fit-content in the cross axis instead of stretching, which shrink-
+   wrapped it to 700px on the shelf and squeezed the grid to two columns. */
+main { width: 100%; max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; flex: 1 0 auto; }
 .hidden { display: none !important; }
 
 /* Hero Section — a title page, not just a heading */
@@ -740,7 +753,10 @@ body:not(.dark-mode) .synopsis-box { background: rgba(255,255,255,0.72); }
 }
 .next-btn { width: auto; display: inline-flex; align-items: center; gap: 0.6rem; }
 
-footer { text-align: center; padding: 3rem 2rem; color: var(--text-muted); font-size: 0.85rem; border-top: 3px double var(--rule-color); margin-top: 4rem; }
+/* No margin-top: main's own padding-bottom already separates content from the
+   rule, and the old 4rem stacked on top of it for ~160px of empty band around
+   a single line of text. */
+footer { text-align: center; padding: 1.75rem 2rem; color: var(--text-muted); font-size: 0.85rem; border-top: 3px double var(--rule-color); }
 
 /* --- Empty State --- */
 .empty-state { grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; color: var(--text-muted); }

@@ -28,15 +28,15 @@ const story = (id, title, author, genre, image, synopsis) => ({
 const books = [
     // ---- Synopses provided ----
     story(1, "The Tell-Tale Heart", "Edgar Allan Poe", "Psychological", "images/tell-tale-heart.jpg",
-        "A psychological breakdown of a murderer plagued by the imagined guilt of a beating heart."),
+        "A man insists he is not mad, and then describes the murder of an old man he loves, whose pale blue eye \u2014 a film over it, like a vulture's \u2014 has kept him awake for a hundred nights. He watches the old man sleep until that eye opens, and acts. The body goes under the floorboards in pieces. Two officers arrive about a scream in the night, and he sets them down on the very chair above the spot."),
     story(2, "The Yellow Wallpaper", "Charlotte Perkins Gilman", "Psychological", "images/yellow-wallpaper.jpg",
-        "A powerful exploration of isolation, confinement, and a descent into madness."),
+        "A woman with what her physician husband calls a temporary nervous depression is taken to a rented country house for the summer and shut into an upstairs room papered in a foul, creeping yellow. He forbids her to write, so she watches the pattern instead. At night the paper moves. By daylight she can count the bars behind it, and the figure that shakes those bars comes out by degrees until it is creeping the room on all sides \u2014 and her husband has to break the door."),
     story(3, "The Monkey's Paw", "W. W. Jacobs", "Supernatural", "images/monkeys-paw.jpg",
-        "A classic supernatural tale about a cursed talisman that grants three wishes with terrifying consequences."),
+        "A sergeant-major stops at a fire in an English cottage and, warning against it even as he hands it over, leaves behind a shrivelled monkey's paw that grants three wishes. The old man wishes for two hundred pounds and laughs. A week later the money arrives as compensation for his son, killed at the machinery in his works. His wife makes him wish the boy back. There is a knock at the door, and what stands on the step is not quite their son \u2014 which is what the third wish is for."),
     story(4, "The Signal-Man", "Charles Dickens", "Ghost Story", "images/signal-man.jpg",
-        "A lonely railway worker haunted by eerie premonitions of impending tragedy."),
+        "A traveller leans over a footbridge to speak to a signalman in the deep cutting below, and is met with the flat accusation that he has no business signalling from up there. The man is not rude so much as undone. Twice he has seen a figure standing where no figure can stand, waving an arm and calling something none of them could hear, and twice the line beneath the cutting has answered with wreckage. The third time, the traveller sees the figure as well \u2014 though not, he will find, the same one."),
     story(5, "The Horla", "Guy de Maupassant", "Horror", "images/horla.jpg",
-        "A chilling account of an invisible, parasitic entity slowly taking over a man's mind."),
+        "Nerves, a doctor says, and a little sea air. Then a three-masted ship from Brazil lies at Havre with every soul aboard dead and one survivor praying aloud to something none of them can see. Back at home a man finds his carafe empty by morning, hears a tread on his stair and a breathing at his pillow, and comes at last to understand that he has a guest he cannot see, cannot strike, and cannot keep out of his own glass. He begins a journal, kept with terrible care, to record it."),
 
     // ---- Synopses below written for this project ----
     story(6, "At the Mountains of Madness", "H. P. Lovecraft", "Cosmic Horror", "images/at-the-mountains-of-madness.jpg",
