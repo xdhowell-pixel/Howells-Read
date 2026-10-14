@@ -300,6 +300,16 @@ function renderSortOptions() {
     ).join('');
 }
 
+// Ten of the forty-two stories are still in print, so they carry a synopsis
+// instead of the text. That belongs on the card: finding it out after clicking
+// is worse than seeing it at a glance. It takes the Finished badge's slot,
+// because a story nobody can read to the end is never in both states at once.
+function coverBadge(book, finished) {
+    if (finished) return '<span class="read-badge"><i class="fa-solid fa-check"></i> Finished</span>';
+    if (!book.text) return '<span class="read-badge is-print"><i class="fa-solid fa-lock"></i> Copyrighted</span>';
+    return '<span class="read-badge hidden"></span>';
+}
+
 function renderBooks() {
     const grid = document.getElementById('book-grid');
     grid.innerHTML = '';
@@ -357,7 +367,7 @@ function renderBooks() {
         const finished = state === 'finished';
 
         card.innerHTML = `
-            <span class="read-badge ${finished ? '' : 'hidden'}"><i class="fa-solid fa-check"></i> Finished</span>
+            ${coverBadge(book, finished)}
             <button class="fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite(${book.id}, this)">
                 <i class="fa-solid fa-heart"></i>
             </button>
@@ -367,7 +377,7 @@ function renderBooks() {
                 <p class="author">By ${book.author}</p>
                 ${finished ? `<div class="rating-row">${starsHtml(book)}</div>` : ''}
                 <div class="read-link">
-                    ${readLinkLabel(state)} <i class="fa-solid fa-arrow-right"></i>
+                    ${readLinkLabel(state, book)} <i class="fa-solid fa-arrow-right"></i>
                 </div>
             </div>
         `;
@@ -597,7 +607,10 @@ function bookState(book) {
     return p >= FINISH_LINE ? 'finished' : 'reading';
 }
 
-function readLinkLabel(state) {
+function readLinkLabel(state, book) {
+    // A story with no free full text is not a story you are about to read, so
+    // it should not say that you are.
+    if (book && !book.text) return 'Read Synopsis';
     if (state === 'reading') return 'Continue';
     if (state === 'finished') return 'Read Again';
     return 'Read Story';

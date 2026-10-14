@@ -832,6 +832,18 @@ body:not(.dark-mode) .synopsis-box { background: rgba(255,255,255,0.72); }
     backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
 }
 
+/* The same slot, said more quietly. Gold is an achievement — finishing a story
+   is something you did. Being still in print is only information, and ten gold
+   badges across the shelf would shout. Themed tokens instead of fixed colours,
+   so it sits on the paper in light mode and on the dark card in dark mode. */
+.read-badge.is-print {
+    background-color: var(--surface-color);
+    color: var(--text-muted);
+    border-color: var(--rule-color);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.18));
+    backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+
 /* --- Reader Footer / Next Story --- */
 .reader-footer {
     margin-top: 3rem; padding-top: 2rem; border-top: 3px double var(--rule-color);
