@@ -729,20 +729,24 @@ function renderDashboard() {
                 </div>
                 <span class="genre-tag">${book.genre}</span>
             </div>`).join('');
+
+    renderHighlights();
 }
 
 function resetStats() {
-    if (!confirm('Clear your reading history, ratings and saved shelf?')) return;
+    if (!confirm('Clear your reading history, ratings, saved shelf and highlights?')) return;
     readingHistory = [];
     readingProgress = {};
     ratings = {};
     favorites = [];
     activityDates = [];
+    storyHighlights = [];
     localStorage.removeItem('howell-reads-history');
     localStorage.removeItem('howell-reads-progress');
     localStorage.removeItem('howell-reads-ratings');
     localStorage.removeItem('howell-reads-favorites');
     localStorage.removeItem(ACTIVITY_KEY);
+    localStorage.removeItem(HIGHLIGHTS_KEY);
     renderDashboard();
 }
 
@@ -944,6 +948,7 @@ async function loadStoryText(book) {
         container.innerHTML =
             `<p>${escapeHtml(book.synopsis)}</p><p class="text-note">${escapeHtml(COPYRIGHT_NOTE)}</p>`;
         setStoryMeta(0);
+        applyHighlights(book.id);
         return;
     }
 
@@ -962,13 +967,438 @@ async function loadStoryText(book) {
 
         container.innerHTML = paragraphs.map(p => `<p>${escapeHtml(p)}</p>`).join('');
         setStoryMeta(words);
+        applyHighlights(book.id);
     } catch (error) {
         if (requestId !== textRequest) return;
         container.innerHTML =
             `<p>${escapeHtml(book.synopsis)}</p><p class="text-note">The full text could not be loaded. Please try again.</p>`;
         setStoryMeta(0);
+        applyHighlights(book.id);
     }
 }
+
+// --- Highlights & margin notes ---
+// Selecting a passage and keeping it is the one thing a reading site can offer
+// that a blog cannot. Everything is local -- no account, no server -- so the
+// record is a single array in localStorage and the marks are re-applied to the
+// text every time a story opens, because the text itself is re-fetched every
+// time.
+const HIGHLIGHTS_KEY = 'howell-reads-highlights';
+
+function loadHighlights() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(HIGHLIGHTS_KEY) || '[]');
+        if (!Array.isArray(raw)) return [];
+        return raw.filter(h => h && typeof h.text === 'string' && h.text &&
+            typeof h.story === 'number');
+    } catch (e) {
+        return [];
+    }
+}
+
+let storyHighlights = loadHighlights();
+
+function saveHighlights() {
+    localStorage.setItem(HIGHLIGHTS_KEY, JSON.stringify(storyHighlights));
+}
+
+const normaliseText = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+
+// Inline markup must not become a space: "the <em>eye</em> opens" is still
+// "the eye opens". Everything else that is an element is a boundary, because
+// the reader's column is paragraphs all the way down and a paragraph break is
+// a space in prose even though it is nothing at all in the markup. Tags are
+// matched against a list rather than a block list so that anything unfamiliar
+// counts as a break -- the safe direction.
+const INLINE_TAGS = {
+    A: 1, ABBR: 1, B: 1, CODE: 1, CITE: 1, EM: 1, I: 1, IMG: 1, INPUT: 1,
+    LABEL: 1, MARK: 1, Q: 1, S: 1, SMALL: 1, SPAN: 1, STRONG: 1, SUB: 1,
+    SUP: 1, U: 1,
+};
+
+const separates = (node) => {
+    if (!node || node.nodeType !== 1) return false;
+    return !INLINE_TAGS[String(node.tagName || '').toUpperCase()];
+};
+
+// Finding a stored passage again means turning a character offset back into a
+// text node and an offset within it. Selections arrive as normalised prose,
+// but the DOM has no spaces between paragraphs at all, so the map keeps the
+// raw concatenation -- offsets in it line up exactly with the text nodes --
+// alongside a normalised view that does read as prose.
+function buildTextMap(root) {
+    const nodes = [];
+    let raw = '';
+    const boundary = new Set();     // raw indices where a new block begins
+    let pendingBoundary = false;
+
+    const walk = (node) => {
+        if (!node) return;
+        if (node.nodeType === 3) {
+            if (!node.data) return;
+            if (pendingBoundary && raw.length) boundary.add(raw.length);
+            pendingBoundary = false;
+            nodes.push({ node, start: raw.length });
+            raw += node.data;
+            return;
+        }
+        if (node.nodeType !== 1) return;
+        for (const child of node.childNodes || []) {
+            const sep = separates(child);
+            if (sep) pendingBoundary = true;
+            walk(child);
+            if (sep) pendingBoundary = true;
+        }
+    };
+    walk(root);
+
+    let norm = '';
+    const normToRaw = [];
+    let spaceAt = -1;
+    for (let i = 0; i < raw.length; i++) {
+        const ch = raw[i];
+        if (/\s/.test(ch)) {
+            // Hold the space back: it is only real if more text follows, which
+            // is what makes this agree with normaliseText's trim at the ends.
+            if (spaceAt < 0 && norm.length) spaceAt = i;
+            continue;
+        }
+        // A paragraph break is a space here even though raw has nothing for
+        // it. Real whitespace between blocks is left to handle it instead, so
+        // that the two can never both fire and leave a doubled space.
+        if (boundary.has(i) && norm.length && spaceAt < 0) {
+            norm += ' ';
+            normToRaw.push(i);
+        }
+        if (spaceAt >= 0) { norm += ' '; normToRaw.push(spaceAt); spaceAt = -1; }
+        norm += ch;
+        normToRaw.push(i);
+    }
+    return { nodes, raw, norm, normToRaw };
+}
+
+// A range can start and end on an element boundary rather than inside a text
+// node, in which case the offset counts children, so walk to the first (or
+// last) piece of text inside.
+function rawOffsetOf(map, node, offset) {
+    if (!node) return 0;
+    if (node.nodeType === 3) {
+        const entry = map.nodes.find(n => n.node === node);
+        return entry ? entry.start + offset : 0;
+    }
+    if (node.nodeType === 1) {
+        const kids = node.childNodes || [];
+        let found = null;
+        const seek = (n) => {
+            if (found || !n) return;
+            if (n.nodeType === 3) { found = n; return; }
+            if (n.nodeType === 1) for (const c of n.childNodes || []) seek(c);
+        };
+        if (offset >= kids.length) {
+            let tail = null;
+            const findLast = (n) => {
+                if (!n) return;
+                if (n.nodeType === 3) { tail = n; return; }
+                if (n.nodeType === 1) for (const c of n.childNodes || []) findLast(c);
+            };
+            findLast(kids[kids.length - 1]);
+            if (tail) {
+                const entry = map.nodes.find(n => n.node === tail);
+                return entry ? entry.start + (tail.data || '').length : 0;
+            }
+            return 0;
+        }
+        seek(kids[offset]);
+        if (found) {
+            const entry = map.nodes.find(n => n.node === found);
+            return entry ? entry.start : 0;
+        }
+    }
+    return 0;
+}
+
+function rawToPosition(map, raw) {
+    if (!map.nodes.length) return null;
+    let best = null;
+    for (const entry of map.nodes) {
+        if (entry.start <= raw) best = entry;
+        else break;
+    }
+    if (!best) best = map.nodes[0];
+    const offset = Math.max(0, Math.min((best.node.data || '').length, raw - best.start));
+    return { node: best.node, offset };
+}
+
+// The prefix and suffix are what stop a repeated line -- "the eye opens"
+// appears more than once in Poe -- from being filed against the wrong one.
+function locateIndices(map, h) {
+    const needle = normaliseText(h.text);
+    if (!needle) return null;
+    const hay = map.norm;
+    let at = -1;
+    if (h.prefix) {
+        const prefix = normaliseText(h.prefix);
+        const i = hay.indexOf(prefix + ' ' + needle);
+        if (i >= 0) at = i + prefix.length + 1;
+    }
+    if (at < 0 && h.suffix) {
+        const i = hay.indexOf(needle + ' ' + normaliseText(h.suffix));
+        if (i >= 0) at = i;
+    }
+    if (at < 0) at = hay.indexOf(needle);
+    if (at < 0) return null;
+    return { start: at, end: at + needle.length };
+}
+
+function rangeFromRaw(map, start, end) {
+    const a = rawToPosition(map, start);
+    const b = rawToPosition(map, end);
+    if (!a || !b || !document.createRange) return null;
+    const range = document.createRange();
+    range.setStart(a.node, a.offset);
+    range.setEnd(b.node, b.offset);
+    return range;
+}
+
+// surroundContents refuses outright when a selection crosses a paragraph, and
+// dragging across two paragraphs is the normal case, so the passage is marked
+// node by node instead. Every offset is collected before anything is split,
+// because splitting shortens a node and invalidates the ones after it.
+function wrapRange(range, isNote) {
+    const root = range.commonAncestorContainer;
+    const targets = [];
+    const consider = (node) => {
+        if (!node || node.nodeType !== 3 || !node.data) return;
+        // Intersects unless the node ends before the range, or starts after.
+        if (range.comparePoint(node, 0) !== 1 && range.comparePoint(node, node.data.length) !== -1) {
+            targets.push({
+                node,
+                start: node === range.startContainer ? range.startOffset : 0,
+                end: node === range.endContainer ? range.endOffset : node.data.length,
+            });
+        }
+    };
+    const walk = (n) => {
+        if (n.nodeType === 3) consider(n);
+        else if (n.nodeType === 1) for (const c of n.childNodes || []) walk(c);
+    };
+    walk(root);
+
+    if (!targets.length) return false;
+
+    targets.forEach(({ node, start, end }) => {
+        if (start >= end) return;
+        let target = node;
+        if (end < target.data.length) target = splitText(target, end);
+        if (start > 0) target = splitText(target, start);
+        if (!target.parentNode) return;
+        const mark = document.createElement('mark');
+        mark.className = isNote ? 'hl hl-note' : 'hl';
+        target.parentNode.insertBefore(mark, target);
+        mark.appendChild(target);
+    });
+    return true;
+}
+
+// splitText lives behind a guard so the mapping maths stays testable against a
+// hand-built tree that has no DOM methods on it at all.
+function splitText(node, at) {
+    return node.splitText(at);
+}
+
+function applyHighlights(storyId) {
+    const container = document.getElementById('chapter-content');
+    if (!container) return 0;
+    const mine = storyHighlights.filter(h => h.story === storyId);
+    if (!mine.length) return 0;
+
+    let applied = 0;
+    mine.forEach((h) => {
+        try {
+            // Rebuilt each time: marking splits text nodes, so the next
+            // passage has to be found against whatever is on screen now.
+            const map = buildTextMap(container);
+            const at = locateIndices(map, h);
+            if (!at) return;
+            const range = rangeFromRaw(map, map.normToRaw[at.start], map.normToRaw[at.end - 1] + 1);
+            if (range && wrapRange(range, !!h.note)) applied++;
+        } catch (e) {
+            // A mark that cannot be placed is skipped, never fatal.
+        }
+    });
+    return applied;
+}
+
+// --- The selection bar ---
+let pendingSelection = null;
+
+const barContains = (el) => {
+    const bar = document.getElementById('sel-bar');
+    return !!(bar && el && bar.contains && bar.contains(el));
+};
+
+function hideSelectionBar() {
+    const bar = document.getElementById('sel-bar');
+    if (!bar) return;
+    bar.hidden = true;
+    const actions = document.getElementById('sel-actions');
+    const form = document.getElementById('sel-note-form');
+    if (actions) actions.hidden = false;
+    if (form) form.hidden = true;
+    pendingSelection = null;
+}
+
+function showSelectionBar(rect) {
+    const bar = document.getElementById('sel-bar');
+    if (!bar) return;
+    bar.hidden = false;                    // measured only once it is visible
+    const w = bar.offsetWidth || 320;
+    const h = bar.offsetHeight || 48;
+    let top = rect.bottom + 8;
+    if (top + h > window.innerHeight - 8) top = Math.max(8, rect.top - h - 8);
+    let left = rect.left;
+    if (left + w > window.innerWidth - 8) left = Math.max(8, window.innerWidth - w - 8);
+    bar.style.top = Math.round(top) + 'px';
+    bar.style.left = Math.round(left) + 'px';
+}
+
+function handleSelectionEnd(e) {
+    if (e && e.target && barContains(e.target)) return;   // the bar's own buttons
+    const sel = window.getSelection ? window.getSelection() : null;
+    if (!sel || !sel.rangeCount || sel.isCollapsed) { hideSelectionBar(); return; }
+
+    const range = sel.getRangeAt(0);
+    const container = document.getElementById('chapter-content');
+    if (!container || !container.contains(range.commonAncestorContainer)) { hideSelectionBar(); return; }
+
+    const text = normaliseText(sel.toString());
+    if (text.length < 2) { hideSelectionBar(); return; }
+
+    pendingSelection = { range: range.cloneRange(), text };
+    showSelectionBar(range.getBoundingClientRect());
+}
+
+function highlightPending(note) {
+    if (!pendingSelection) return false;
+    const container = document.getElementById('chapter-content');
+    if (!container) return false;
+
+    const { range, text } = pendingSelection;
+    const map = buildTextMap(container);
+    const rawStart = rawOffsetOf(map, range.startContainer, range.startOffset);
+    const rawEnd = rawOffsetOf(map, range.endContainer, range.endOffset);
+    const entry = {
+        story: currentBookId,
+        text,
+        prefix: normaliseText(map.raw.slice(Math.max(0, rawStart - 48), rawStart)),
+        suffix: normaliseText(map.raw.slice(rawEnd, rawEnd + 48)),
+        note: normaliseText(note),
+        created: Date.now(),
+    };
+
+    // Selecting the same passage twice must not file it twice. Re-marking it
+    // with a note writes the note onto the entry already there instead.
+    const existing = storyHighlights.findIndex(h => h.story === entry.story &&
+        h.text === entry.text && h.prefix === entry.prefix && h.suffix === entry.suffix);
+    if (existing >= 0) {
+        if (entry.note) {
+            storyHighlights[existing].note = entry.note;
+            storyHighlights[existing].created = entry.created;
+            saveHighlights();
+        }
+    } else {
+        storyHighlights.push(entry);
+        saveHighlights();
+        wrapRange(range, !!entry.note);
+    }
+
+    hideSelectionBar();
+    const sel = window.getSelection ? window.getSelection() : null;
+    if (sel) sel.removeAllRanges();
+    return true;
+}
+
+document.addEventListener('mouseup', handleSelectionEnd);
+document.addEventListener('touchend', handleSelectionEnd);
+document.addEventListener('mousedown', (e) => {
+    if (e && e.target && barContains(e.target)) return;
+    hideSelectionBar();
+});
+window.addEventListener('scroll', hideSelectionBar);
+
+const selHighlightBtn = document.getElementById('sel-highlight');
+if (selHighlightBtn) selHighlightBtn.addEventListener('click', () => highlightPending(''));
+
+const selNoteBtn = document.getElementById('sel-note');
+if (selNoteBtn) selNoteBtn.addEventListener('click', () => {
+    const actions = document.getElementById('sel-actions');
+    const form = document.getElementById('sel-note-form');
+    if (actions) actions.hidden = true;
+    if (form) form.hidden = false;
+    const box = document.getElementById('sel-note-text');
+    if (box && box.focus) box.focus();
+});
+
+const selCancelBtn = document.getElementById('sel-note-cancel');
+if (selCancelBtn) selCancelBtn.addEventListener('click', () => {
+    const actions = document.getElementById('sel-actions');
+    const form = document.getElementById('sel-note-form');
+    if (actions) actions.hidden = false;
+    if (form) form.hidden = true;
+});
+
+const selNoteForm = document.getElementById('sel-note-form');
+if (selNoteForm) selNoteForm.addEventListener('submit', (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const box = document.getElementById('sel-note-text');
+    if (highlightPending(box ? box.value : '') && box) box.value = '';
+    return false;
+});
+
+// --- Marginalia on the dashboard ---
+function renderHighlights() {
+    const box = document.getElementById('notes-list');
+    if (!box) return;
+
+    if (!storyHighlights.length) {
+        box.innerHTML =
+            '<div class="dash-empty"><i class="fa-solid fa-highlighter"></i>' +
+            '<p>No notes yet. Select a passage while reading and it will be kept here.</p></div>';
+        return;
+    }
+
+    const newestFirst = storyHighlights.slice().sort((a, b) => (b.created || 0) - (a.created || 0));
+    box.innerHTML = newestFirst.map((h) => {
+        const book = allBooks.find(b => b.id === h.story);
+        return '<div class="note-row">' +
+            '<button type="button" class="note-story" data-open="' + h.story + '">' +
+            escapeHtml(book ? book.title : 'A story') + '</button>' +
+            '<blockquote class="note-excerpt">&ldquo;' + escapeHtml(h.text) + '&rdquo;</blockquote>' +
+            (h.note ? '<p class="note-body">' + escapeHtml(h.note) + '</p>' : '') +
+            '<button type="button" class="note-del" data-drop="' + h.created +
+            '" aria-label="Remove this note"><i class="fa-solid fa-xmark"></i></button>' +
+            '</div>';
+    }).join('');
+}
+
+const notesBox = document.getElementById('notes-list');
+if (notesBox) notesBox.addEventListener('click', (e) => {
+    const target = e && e.target && e.target.closest ? e.target.closest('[data-open], [data-drop]') : null;
+    if (!target) return;
+    if (target.dataset.drop) {
+        // Keyed by creation time, which is unique, so a re-sorted list cannot
+        // delete the wrong row.
+        const stamp = Number(target.dataset.drop);
+        const at = storyHighlights.findIndex(h => h.created === stamp);
+        if (at >= 0) {
+            storyHighlights.splice(at, 1);
+            saveHighlights();
+            renderHighlights();
+        }
+        return;
+    }
+    if (target.dataset.open) openBook(Number(target.dataset.open), document.createElement('div'));
+});
 
 // --- Next Story ---
 let currentBookId = null;

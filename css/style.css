@@ -464,6 +464,88 @@ body.dark-mode .rs-panel { background: #151212; }
     background: transparent;
 }
 
+/* --- Selection actions ---
+   Appears where the selection is rather than somewhere in the chrome, because
+   the thing you want to mark is the thing you are looking at. */
+.sel-bar {
+    position: fixed; z-index: 1280;
+    background: var(--surface-color);
+    border: 1px solid var(--rule-color);
+    border-top: 3px double var(--rule-color);
+    box-shadow: var(--shadow-lg, 0 12px 30px rgba(0, 0, 0, 0.24));
+    max-width: min(340px, calc(100vw - 2rem));
+}
+/* [hidden] must win over the UA rule, so the display only appears once the
+   attribute is lifted -- a bare .sel-bar { display: flex } would outrank it. */
+.sel-bar:not([hidden]) { display: flex; flex-direction: column; }
+/* Both halves are swapped with the hidden attribute, so both need the guard --
+   a bare `display: flex` outranks the UA's [hidden] rule and the note form
+   would sit inside the bar for good. */
+.sel-actions:not([hidden]) { display: flex; gap: 0.4rem; padding: 0.5rem; }
+.sel-act {
+    font-family: var(--font-display); font-weight: 600; font-size: 0.62rem;
+    letter-spacing: 1.8px; text-transform: uppercase;
+    padding: 0.6rem 0.75rem; cursor: pointer; white-space: nowrap;
+    background: var(--surface-color); color: var(--text-main);
+    border: 1px solid var(--rule-color); border-radius: 0;
+    transition: background-color 0.4s ease, color 0.3s ease, border-color 0.4s ease;
+}
+.sel-act:hover { background: var(--primary-color); border-color: var(--primary-color); color: var(--surface-color); }
+.sel-act:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+.sel-save { background: var(--primary-color); border-color: var(--primary-color); color: var(--surface-color); }
+.sel-form:not([hidden]) { display: flex; flex-direction: column; gap: 0.55rem; padding: 0.6rem; }
+.sel-form textarea {
+    width: 268px; max-width: calc(100vw - 4rem); padding: 0.6rem 0.7rem;
+    background: var(--surface-color); color: var(--text-main);
+    border: 1px solid var(--rule-color); border-radius: 0;
+    font-family: var(--font-body); font-size: 0.9rem; line-height: 1.5;
+    resize: vertical;
+}
+.sel-form textarea::placeholder { color: var(--text-muted); }
+.sel-form textarea:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 1px; }
+.sel-form-actions { display: flex; gap: 0.4rem; }
+
+/* --- The marks themselves ---
+   The browser default is yellow on black, which belongs to no palette here. */
+.story-content mark.hl {
+    background: rgba(217, 180, 90, 0.42); color: inherit;
+    padding: 0.05em 0.1em; border-radius: 1px;
+}
+.story-content mark.hl.hl-note {
+    background: rgba(217, 180, 90, 0.55);
+    box-shadow: inset 0 -2px 0 var(--primary-color);
+}
+body.dark-mode .story-content mark.hl { background: rgba(217, 180, 90, 0.32); }
+
+/* --- Marginalia list --- */
+.panel-wide { grid-column: 1 / -1; }
+.note-row { position: relative; padding: 1rem 2.5rem 1rem 0; border-top: 1px solid var(--rule-color); }
+.note-row:first-child { border-top: none; padding-top: 0.15rem; }
+.note-story {
+    font-family: var(--font-display); font-weight: 600; font-size: 0.62rem;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--accent-color);
+    background: none; border: none; padding: 0; cursor: pointer;
+    transition: color 0.3s ease;
+}
+.note-story:hover { color: var(--primary-color); text-decoration: underline; }
+.note-excerpt {
+    margin: 0.55rem 0 0; font-style: italic; font-size: 0.95rem;
+    color: var(--text-main); border-left: 3px solid var(--accent-color);
+    padding-left: 0.8rem;
+}
+.note-body { margin: 0.5rem 0 0; font-size: 0.88rem; color: var(--text-muted); }
+.note-body::before { content: '\2014 '; }
+.note-del {
+    position: absolute; top: 0.7rem; right: 0; width: 1.75rem; height: 1.75rem;
+    background: transparent; border: 1px solid var(--text-muted); border-radius: 0;
+    color: var(--text-muted); cursor: pointer; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background-color 0.35s ease, color 0.3s ease, border-color 0.35s ease;
+}
+.note-row:first-child .note-del { top: 0; }
+.note-del:hover { background: var(--primary-color); border-color: var(--primary-color); color: var(--surface-color); }
+.note-del:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+
 .rs-group + .rs-group { margin-top: 1.15rem; padding-top: 1.15rem; border-top: 1px solid var(--rule-color); }
 .rs-label {
     display: block; font-family: var(--font-display); font-weight: 600;
