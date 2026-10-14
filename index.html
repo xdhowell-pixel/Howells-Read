@@ -21,8 +21,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Cinzel stands in for Riot's Beaufort for LOL (engraved Roman capitals, always set in caps);
          Barlow stands in for Spiegel — Riot ships Barlow Condensed in the same client.
-         Playfair Display is kept for book titles only. -->
-    <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cinzel:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+         Playfair Display is kept for book titles only.
+         Lora is the reading serif offered in the reader's typeface picker. -->
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cinzel:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,800;1,600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="css/style.css">
@@ -183,7 +184,58 @@
                     <p class="author-line">By <span id="story-author">Author Name</span></p>
                     <p class="story-meta" id="story-meta"></p>
                     
-                    <button class="btn outline-btn" id="toggle-synopsis">Read Synopsis</button>
+                    <div class="story-actions">
+                        <button class="btn outline-btn" id="toggle-synopsis">Read Synopsis</button>
+                        <button class="btn outline-btn" id="reader-settings-toggle"
+                                aria-expanded="false" aria-controls="reader-settings">
+                            <i class="fa-solid fa-font"></i> Reading Settings
+                        </button>
+                    </div>
+
+                    <div id="reader-settings" class="reader-settings hidden" role="group"
+                         aria-label="Reading settings">
+
+                        <div class="rs-group">
+                            <span class="rs-label" id="rs-brightness-label">Brightness</span>
+                            <div class="rs-slider-row">
+                                <i class="fa-regular fa-moon rs-end" aria-hidden="true"></i>
+                                <input type="range" id="rs-brightness" min="70" max="130" step="5"
+                                       value="100" aria-labelledby="rs-brightness-label">
+                                <i class="fa-regular fa-sun rs-end" aria-hidden="true"></i>
+                                <output class="rs-readout" id="rs-brightness-out" for="rs-brightness">100%</output>
+                            </div>
+                        </div>
+
+                        <div class="rs-group">
+                            <span class="rs-label" id="rs-font-label">Typeface</span>
+                            <div class="rs-choices" id="rs-fonts" role="group" aria-labelledby="rs-font-label">
+                                <button type="button" class="rs-chip active" data-font="sans" aria-pressed="true">
+                                    <span class="rs-sample" style="font-family:'Barlow',sans-serif">Aa</span> Sans
+                                </button>
+                                <button type="button" class="rs-chip" data-font="serif" aria-pressed="false">
+                                    <span class="rs-sample" style="font-family:'Lora',serif">Aa</span> Serif
+                                </button>
+                                <button type="button" class="rs-chip" data-font="book" aria-pressed="false">
+                                    <span class="rs-sample" style="font-family:Georgia,serif">Aa</span> Book
+                                </button>
+                                <button type="button" class="rs-chip" data-font="display" aria-pressed="false">
+                                    <span class="rs-sample" style="font-family:'Playfair Display',serif">Aa</span> Display
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="rs-group">
+                            <span class="rs-label" id="rs-size-label">Text size</span>
+                            <div class="rs-stepper">
+                                <button type="button" class="rs-step" id="rs-dec" aria-label="Smaller text">A&minus;</button>
+                                <output class="rs-readout" id="rs-size-out" aria-live="polite">18px</output>
+                                <button type="button" class="rs-step" id="rs-inc" aria-label="Larger text">A+</button>
+                                <button type="button" class="rs-reset" id="rs-reset">Reset</button>
+                            </div>
+                        </div>
+
+                    </div>
+
                     <div id="synopsis-wrapper" class="synopsis-wrapper hidden">
                         <div id="story-synopsis" class="synopsis-box">
                             <p>This is the synopsis of the book...</p>

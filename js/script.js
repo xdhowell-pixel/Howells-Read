@@ -681,6 +681,88 @@ document.getElementById('toggle-synopsis').addEventListener('click', function ()
     this.textContent = isHidden ? 'Read Synopsis' : 'Hide Synopsis';
 });
 
+// --- Reading settings: brightness, typeface, text size ---
+// Each preference is written as a custom property on #reader-view rather than
+// as a class, so three independent controls can compose and the reader markup
+// never changes. Applied on load too, so a preference set on one story carries
+// into the next.
+const READER_PREFS_KEY = 'howell-reads-reader';
+const READER_SIZE_MIN = 15;
+const READER_SIZE_MAX = 26;
+const READER_DEFAULTS = { brightness: 100, font: 'sans', size: 18 };
+const READER_FONTS = {
+    sans:    "'Barlow', system-ui, sans-serif",
+    serif:   "'Lora', Georgia, serif",
+    book:    "Georgia, 'Times New Roman', serif",
+    display: "'Playfair Display', Georgia, serif"
+};
+
+let readerPrefs = Object.assign({}, READER_DEFAULTS);
+try {
+    const saved = JSON.parse(localStorage.getItem(READER_PREFS_KEY) || 'null');
+    if (saved && typeof saved === 'object') Object.assign(readerPrefs, saved);
+} catch (err) {
+    readerPrefs = Object.assign({}, READER_DEFAULTS);
+}
+
+// A stored value could be anything, so it is repaired on the way in rather
+// than trusted — the range inputs clamp themselves anyway.
+function clampReaderPrefs() {
+    const b = Number(readerPrefs.brightness);
+    readerPrefs.brightness = Math.min(130, Math.max(70, isFinite(b) ? b : 100));
+    const s = Number(readerPrefs.size);
+    readerPrefs.size = Math.round(Math.min(READER_SIZE_MAX, Math.max(READER_SIZE_MIN, isFinite(s) ? s : 18)));
+    if (!Object.prototype.hasOwnProperty.call(READER_FONTS, readerPrefs.font)) readerPrefs.font = READER_DEFAULTS.font;
+}
+
+function applyReaderPrefs() {
+    clampReaderPrefs();
+
+    const view = document.getElementById('reader-view');
+    view.style.setProperty('--reader-brightness', String(readerPrefs.brightness / 100));
+    view.style.setProperty('--reader-font', READER_FONTS[readerPrefs.font]);
+    view.style.setProperty('--reader-size', readerPrefs.size + 'px');
+
+    document.getElementById('rs-brightness').value = readerPrefs.brightness;
+    document.getElementById('rs-brightness-out').textContent = readerPrefs.brightness + '%';
+    document.getElementById('rs-size-out').textContent = readerPrefs.size + 'px';
+    document.getElementById('rs-dec').disabled = readerPrefs.size <= READER_SIZE_MIN;
+    document.getElementById('rs-inc').disabled = readerPrefs.size >= READER_SIZE_MAX;
+
+    document.querySelectorAll('.rs-chip').forEach(chip => {
+        const on = chip.dataset.font === readerPrefs.font;
+        chip.classList.toggle('active', on);
+        chip.setAttribute('aria-pressed', String(on));
+    });
+
+    try {
+        localStorage.setItem(READER_PREFS_KEY, JSON.stringify(readerPrefs));
+    } catch (err) { /* storage refused: the settings simply won't persist */ }
+}
+
+applyReaderPrefs();
+
+document.getElementById('rs-brightness').addEventListener('input', (e) => {
+    readerPrefs.brightness = Number(e.target.value);
+    applyReaderPrefs();
+});
+document.getElementById('rs-dec').addEventListener('click', () => { readerPrefs.size -= 1; applyReaderPrefs(); });
+document.getElementById('rs-inc').addEventListener('click', () => { readerPrefs.size += 1; applyReaderPrefs(); });
+document.querySelectorAll('.rs-chip').forEach(chip => chip.addEventListener('click', () => {
+    readerPrefs.font = chip.dataset.font;
+    applyReaderPrefs();
+}));
+document.getElementById('rs-reset').addEventListener('click', () => {
+    readerPrefs = Object.assign({}, READER_DEFAULTS);
+    applyReaderPrefs();
+});
+
+const readerSettingsToggle = document.getElementById('reader-settings-toggle');
+readerSettingsToggle.addEventListener('click', function () {
+    const stillHidden = document.getElementById('reader-settings').classList.toggle('hidden');
+    this.setAttribute('aria-expanded', String(!stillHidden));
+});
+
 // --- Search & Sort Listeners ---
 document.getElementById('search-input').addEventListener('input', (e) => {
     currentSearch = e.target.value;
