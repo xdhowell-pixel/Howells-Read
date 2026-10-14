@@ -461,6 +461,12 @@ function setHero(eyebrow, title, blurb) {
 function showView(id) {
     ['library-view', 'reader-view', 'dashboard-view'].forEach(view =>
         document.getElementById(view).classList.toggle('hidden', view !== id));
+    // Leaving a story should not leave its settings panel floating over
+    // whatever comes next.
+    if (id !== 'reader-view') {
+        const panel = document.getElementById('rs-drawer');
+        if (panel && panel.classList.contains('open')) setReaderPanel(false);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -757,10 +763,33 @@ document.getElementById('rs-reset').addEventListener('click', () => {
     applyReaderPrefs();
 });
 
+const rsPanel = document.getElementById('rs-drawer');
+const rsScrim = document.getElementById('rs-scrim');
 const readerSettingsToggle = document.getElementById('reader-settings-toggle');
-readerSettingsToggle.addEventListener('click', function () {
-    const stillHidden = document.getElementById('reader-settings').classList.toggle('hidden');
-    this.setAttribute('aria-expanded', String(!stillHidden));
+let rsReturnFocus = null;
+
+function setReaderPanel(open) {
+    rsPanel.classList.toggle('open', open);
+    rsScrim.classList.toggle('open', open);
+    readerSettingsToggle.setAttribute('aria-expanded', String(open));
+    rsPanel.setAttribute('aria-hidden', String(!open));
+    if (open) {
+        // Stash the trigger so focus goes back to it on close, rather than
+        // dropping to the top of the document.
+        rsReturnFocus = document.activeElement || readerSettingsToggle;
+        document.getElementById('rs-close').focus();
+    } else if (rsReturnFocus) {
+        if (rsReturnFocus.focus) rsReturnFocus.focus();
+        rsReturnFocus = null;
+    }
+}
+
+readerSettingsToggle.addEventListener('click', () =>
+    setReaderPanel(!rsPanel.classList.contains('open')));
+document.getElementById('rs-close').addEventListener('click', () => setReaderPanel(false));
+rsScrim.addEventListener('click', () => setReaderPanel(false));
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && rsPanel.classList.contains('open')) setReaderPanel(false);
 });
 
 // --- Search & Sort Listeners ---

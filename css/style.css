@@ -368,20 +368,84 @@ body.dark-mode .fav-btn { background: rgba(0,0,0,0.6); }
 .synopsis-box { min-height: 0; background: rgba(0,0,0,0.4); padding: 1.5rem; border-radius: 8px; margin-top: 1.5rem; font-size: calc(var(--reader-size, 1.125rem) * 0.85); border-left: 4px solid var(--accent-color); backdrop-filter: blur(4px); opacity: 0; transform: translateY(-10px); transition: opacity 0.4s ease 0.1s, transform 0.4s ease 0.1s; }
 .synopsis-wrapper:not(.hidden) .synopsis-box { opacity: 1; transform: translateY(0); }
 
-/* --- Reading settings panel ---
-   Squared and letterpress like the rest of the site: a printed control card
-   rather than a floating rounded popover. */
-.story-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-top: 1rem; }
-.story-actions .btn { margin-top: 0; margin-bottom: 0; }
+/* --- Reading settings --------------------------------------------------
+   Patterned on what the big readers do: Kindle and Readwise both put an "Aa"
+   control a single tap from the text, because reaching the top of a long story
+   to change the typeface is the wrong kind of trip. On the web Audeus slides
+   the panel in from the side and on mobile brings it up from the bottom, which
+   is where a thumb already is -- both followed here. */
 
-.reader-settings {
-    margin-top: 1.25rem; padding: 1.35rem 1.4rem 1.5rem;
-    border: 1px solid var(--rule-color); border-top: 3px double var(--rule-color);
-    background: var(--surface-color);
-    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.08));
-    text-align: left;
+.rs-fab {
+    position: fixed; right: 1.5rem; bottom: 1.5rem; z-index: 1200;
+    display: none; align-items: center; justify-content: center;
+    min-width: 3.4rem; height: 3.4rem; padding: 0 0.4rem;
+    background: var(--surface-color); color: var(--primary-color);
+    border: 2px solid var(--accent-color); border-radius: 0;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.24);
+    font-family: var(--font-body); font-weight: 600; font-size: 1.2rem;
+    letter-spacing: 0.5px; line-height: 1; cursor: pointer;
+    transition: background-color 0.6s ease, color 0.4s ease, border-color 0.5s ease;
 }
-body.dark-mode .reader-settings { background: rgba(255,255,255,0.04); }
+.rs-fab:hover, .rs-fab[aria-expanded="true"] {
+    background: var(--primary-color); border-color: var(--primary-color); color: var(--surface-color);
+}
+.rs-fab:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 3px; }
+/* Shown only while a story is on screen. A sibling combinator rather than a
+   class on the button, so the state cannot drift out of step with the view. */
+#reader-view:not(.hidden) ~ .rs-fab { display: flex; }
+
+.rs-scrim {
+    position: fixed; inset: 0; z-index: 1250;
+    background: rgba(16,11,9,0.5);
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity 0.35s ease, visibility 0s linear 0.35s;
+}
+.rs-scrim.open { opacity: 1; visibility: visible; pointer-events: auto; transition-delay: 0s; }
+
+.rs-panel {
+    position: fixed; top: 0; right: 0; z-index: 1300;
+    width: min(360px, 92vw); height: 100%;
+    background: var(--surface-color);
+    border-left: 3px double var(--rule-color);
+    box-shadow: -14px 0 40px rgba(0,0,0,0.3);
+    padding: 1.35rem 1.4rem 2rem;
+    overflow-y: auto;
+    /* visibility rides along so the closed panel can't be tabbed into, with the
+       delay letting the slide finish before it disappears. */
+    transform: translateX(100%); visibility: hidden;
+    transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.42s;
+}
+.rs-panel.open {
+    transform: translateX(0); visibility: visible;
+    transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s;
+}
+body.dark-mode .rs-panel { background: #151212; }
+
+.rs-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.9rem; margin-bottom: 1.1rem;
+    border-bottom: 1px solid var(--rule-color);
+}
+.rs-title {
+    font-family: var(--font-display); font-weight: 600; font-size: 0.72rem;
+    letter-spacing: 2.6px; text-transform: uppercase; color: var(--text-main);
+}
+.rs-title i { font-size: 0.62rem; margin-right: 0.4rem; color: var(--accent-color); }
+.rs-close {
+    background: transparent; border: 1px solid var(--text-muted); border-radius: 0;
+    color: var(--text-main); width: 2rem; height: 2rem; flex: none; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease;
+}
+.rs-close:hover { background: var(--primary-color); border-color: var(--primary-color); color: var(--surface-color); }
+.rs-close:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+
+/* Inside the drawer the controls sit flush -- the drawer supplies its own
+   frame, so the old card border and shadow would double up. */
+.rs-panel .reader-settings {
+    margin: 0; padding: 0; border: none; box-shadow: none;
+    background: transparent;
+}
 
 .rs-group + .rs-group { margin-top: 1.15rem; padding-top: 1.15rem; border-top: 1px solid var(--rule-color); }
 .rs-label {
@@ -758,6 +822,18 @@ footer { text-align: center; padding: 3rem 2rem; color: var(--text-muted); font-
     /* --- Reader --- */
     .story-reader { padding: 1.75rem 1.25rem; }
     .story-header h2 { font-size: 1.35rem; letter-spacing: 0.07em; }
+
+    /* --- Reading settings: up from the bottom, where the thumb is --- */
+    .rs-panel {
+        top: auto; bottom: 0; left: 0; right: 0;
+        width: 100%; height: auto; max-height: 78vh;
+        border-left: none; border-top: 3px double var(--rule-color);
+        box-shadow: 0 -14px 40px rgba(0,0,0,0.3);
+        transform: translateY(100%);
+        padding: 1.1rem 1.1rem calc(1.4rem + env(safe-area-inset-bottom, 0px));
+    }
+    .rs-panel.open { transform: translateY(0); }
+    .rs-fab { right: 1rem; bottom: 1rem; }
 
     /* --- Dashboard --- */
     .dashboard-panels { grid-template-columns: 1fr; }

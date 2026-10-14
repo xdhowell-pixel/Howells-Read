@@ -184,57 +184,7 @@
                     <p class="author-line">By <span id="story-author">Author Name</span></p>
                     <p class="story-meta" id="story-meta"></p>
                     
-                    <div class="story-actions">
-                        <button class="btn outline-btn" id="toggle-synopsis">Read Synopsis</button>
-                        <button class="btn outline-btn" id="reader-settings-toggle"
-                                aria-expanded="false" aria-controls="reader-settings">
-                            <i class="fa-solid fa-font"></i> Reading Settings
-                        </button>
-                    </div>
-
-                    <div id="reader-settings" class="reader-settings hidden" role="group"
-                         aria-label="Reading settings">
-
-                        <div class="rs-group">
-                            <span class="rs-label" id="rs-brightness-label">Brightness</span>
-                            <div class="rs-slider-row">
-                                <i class="fa-regular fa-moon rs-end" aria-hidden="true"></i>
-                                <input type="range" id="rs-brightness" min="70" max="130" step="5"
-                                       value="100" aria-labelledby="rs-brightness-label">
-                                <i class="fa-regular fa-sun rs-end" aria-hidden="true"></i>
-                                <output class="rs-readout" id="rs-brightness-out" for="rs-brightness">100%</output>
-                            </div>
-                        </div>
-
-                        <div class="rs-group">
-                            <span class="rs-label" id="rs-font-label">Typeface</span>
-                            <div class="rs-choices" id="rs-fonts" role="group" aria-labelledby="rs-font-label">
-                                <button type="button" class="rs-chip active" data-font="sans" aria-pressed="true">
-                                    <span class="rs-sample" style="font-family:'Barlow',sans-serif">Aa</span> Sans
-                                </button>
-                                <button type="button" class="rs-chip" data-font="serif" aria-pressed="false">
-                                    <span class="rs-sample" style="font-family:'Lora',serif">Aa</span> Serif
-                                </button>
-                                <button type="button" class="rs-chip" data-font="book" aria-pressed="false">
-                                    <span class="rs-sample" style="font-family:Georgia,serif">Aa</span> Book
-                                </button>
-                                <button type="button" class="rs-chip" data-font="display" aria-pressed="false">
-                                    <span class="rs-sample" style="font-family:'Playfair Display',serif">Aa</span> Display
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="rs-group">
-                            <span class="rs-label" id="rs-size-label">Text size</span>
-                            <div class="rs-stepper">
-                                <button type="button" class="rs-step" id="rs-dec" aria-label="Smaller text">A&minus;</button>
-                                <output class="rs-readout" id="rs-size-out" aria-live="polite">18px</output>
-                                <button type="button" class="rs-step" id="rs-inc" aria-label="Larger text">A+</button>
-                                <button type="button" class="rs-reset" id="rs-reset">Reset</button>
-                            </div>
-                        </div>
-
-                    </div>
+                    <button class="btn outline-btn" id="toggle-synopsis">Read Synopsis</button>
 
                     <div id="synopsis-wrapper" class="synopsis-wrapper hidden">
                         <div id="story-synopsis" class="synopsis-box">
@@ -258,6 +208,72 @@
                 </div>
             </article>
         </section>
+
+        <!-- Reader settings sit out here, as siblings of #reader-view rather
+             than inside it, for two reasons. The brightness filter is applied
+             to #reader-view, so anything nested in it would dim along with the
+             page and the controls for it would become unreadable at 70%. And a
+             fixed element nested under a filtered ancestor stops being fixed.
+             Sibling also lets CSS show the button only while a story is open. -->
+        <div class="rs-scrim" id="rs-scrim"></div>
+
+        <div class="rs-panel" id="rs-drawer" role="dialog" aria-modal="true"
+             aria-label="Reading settings" aria-hidden="true">
+            <div class="rs-head">
+                <span class="rs-title"><i class="fa-solid fa-font"></i> Reading Settings</span>
+                <button type="button" class="rs-close" id="rs-close" aria-label="Close reading settings">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div id="reader-settings" class="reader-settings">
+
+                <div class="rs-group">
+                    <span class="rs-label" id="rs-brightness-label">Brightness</span>
+                    <div class="rs-slider-row">
+                        <i class="fa-regular fa-moon rs-end" aria-hidden="true"></i>
+                        <input type="range" id="rs-brightness" min="70" max="130" step="5"
+                               value="100" aria-labelledby="rs-brightness-label">
+                        <i class="fa-regular fa-sun rs-end" aria-hidden="true"></i>
+                        <output class="rs-readout" id="rs-brightness-out" for="rs-brightness">100%</output>
+                    </div>
+                </div>
+
+                <div class="rs-group">
+                    <span class="rs-label" id="rs-font-label">Typeface</span>
+                    <div class="rs-choices" id="rs-fonts" role="group" aria-labelledby="rs-font-label">
+                        <button type="button" class="rs-chip active" data-font="sans" aria-pressed="true">
+                            <span class="rs-sample" style="font-family:'Barlow',sans-serif">Aa</span> Sans
+                        </button>
+                        <button type="button" class="rs-chip" data-font="serif" aria-pressed="false">
+                            <span class="rs-sample" style="font-family:'Lora',serif">Aa</span> Serif
+                        </button>
+                        <button type="button" class="rs-chip" data-font="book" aria-pressed="false">
+                            <span class="rs-sample" style="font-family:Georgia,serif">Aa</span> Book
+                        </button>
+                        <button type="button" class="rs-chip" data-font="display" aria-pressed="false">
+                            <span class="rs-sample" style="font-family:'Playfair Display',serif">Aa</span> Display
+                        </button>
+                    </div>
+                </div>
+
+                <div class="rs-group">
+                    <span class="rs-label" id="rs-size-label">Text size</span>
+                    <div class="rs-stepper">
+                        <button type="button" class="rs-step" id="rs-dec" aria-label="Smaller text">A&minus;</button>
+                        <output class="rs-readout" id="rs-size-out" aria-live="polite">18px</output>
+                        <button type="button" class="rs-step" id="rs-inc" aria-label="Larger text">A+</button>
+                        <button type="button" class="rs-reset" id="rs-reset">Reset</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <button type="button" class="rs-fab" id="reader-settings-toggle"
+                aria-expanded="false" aria-controls="rs-drawer" aria-label="Reading settings">
+            Aa
+        </button>
     </main>
 
     <footer>
