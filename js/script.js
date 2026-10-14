@@ -897,6 +897,61 @@ function nextStory() {
     openBook(next.id, document.createElement('div'));
 }
 
+function prevStory() {
+    const index = allBooks.findIndex(b => b.id === currentBookId);
+    const prev = allBooks[(index - 1 + allBooks.length) % allBooks.length];
+    openBook(prev.id, document.createElement('div'));
+}
+
+// --- Surprise Me ---
+// Forty-two titles is enough that choosing becomes a chore, so one button
+// chooses. It will not hand back the story already on screen unless that is
+// the only story there is.
+function surpriseMe() {
+    if (!allBooks.length) return null;
+    let pick = allBooks[Math.floor(Math.random() * allBooks.length)];
+    for (let tries = 0; allBooks.length > 1 && pick.id === currentBookId && tries < 8; tries++) {
+        pick = allBooks[Math.floor(Math.random() * allBooks.length)];
+    }
+    openBook(pick.id, document.createElement('div'));
+    return pick.id;
+}
+
+// --- Keyboard shortcuts ---
+// The panel is for people who want a panel. The keys are for people who have
+// already found their size and want it one notch wider without stopping to
+// hunt for a button mid-sentence.
+function handleReaderShortcut(e) {
+    if (!e || !e.key) return false;
+
+    const t = e.target;
+    // A shortcut must never eat a character the reader is typing.
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' ||
+              t.tagName === 'SELECT' || t.isContentEditable)) return false;
+
+    const key = e.key;
+    const stop = () => { if (e.preventDefault) e.preventDefault(); return true; };
+
+    if (key === '/') {
+        const lib = document.getElementById('library-view');
+        if (lib.classList.contains('hidden')) showLibrary();
+        const box = document.getElementById('search-input');
+        if (box && box.focus) box.focus();
+        return stop();
+    }
+
+    if (document.getElementById('reader-view').classList.contains('hidden')) return false;
+
+    if (key === '+' || key === '=') { document.getElementById('rs-inc').click(); return stop(); }
+    if (key === '-' || key === '_') { document.getElementById('rs-dec').click(); return stop(); }
+    if (key === ']') { nextStory(); return true; }
+    if (key === '[') { prevStory(); return true; }
+
+    return false;
+}
+
+document.addEventListener('keydown', handleReaderShortcut);
+
 // --- Progress Bar ---
 window.addEventListener('scroll', () => {
     const winScroll = document.body.scrollTop || document.documentElement.scrollTop;

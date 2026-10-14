@@ -147,6 +147,10 @@ main { width: 100%; max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; flex:
     pointer-events: none;
 }
 .hero-content { position: relative; z-index: 2; }
+/* The hero is centred, so the button only needs to clear the blurb above it.
+   It appears on both The Collection and My Shelf, since setHero rewrites the
+   three text nodes around it rather than the container. */
+.hero-surprise { margin-top: 2rem; margin-bottom: 0; }
 .eyebrow { display: inline-block; font-family: var(--font-display); font-size: 0.68rem; letter-spacing: 5px; text-transform: uppercase; color: var(--accent-color); margin-bottom: 1.5rem; font-weight: 600; }
 /* Engraved capitals, wide tracking — the champion-page title treatment. */
 .hero-section h1 {
