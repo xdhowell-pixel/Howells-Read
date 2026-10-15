@@ -1177,7 +1177,7 @@ function rangeFromRaw(map, start, end) {
 // dragging across two paragraphs is the normal case, so the passage is marked
 // node by node instead. Every offset is collected before anything is split,
 // because splitting shortens a node and invalidates the ones after it.
-function wrapRange(range, isNote) {
+function wrapRange(range, isNote, hlIndex) {
     const root = range.commonAncestorContainer;
     const targets = [];
     const consider = (node) => {
@@ -1201,12 +1201,21 @@ function wrapRange(range, isNote) {
 
     targets.forEach(({ node, start, end }) => {
         if (start >= end) return;
+        // The tail is cut off but `target` is left pointing at the head, so
+        // the second cut is still measured from the beginning of the text.
+        // Reassigning `target` to the tail would make start an offset from the
+        // end of the paragraph instead, and a selection sitting part way into
+        // a long passage would mark the words *after* it rather than the
+        // ones that were actually chosen.
         let target = node;
-        if (end < target.data.length) target = splitText(target, end);
+        if (end < target.data.length) splitText(target, end);
         if (start > 0) target = splitText(target, start);
         if (!target.parentNode) return;
         const mark = document.createElement('mark');
         mark.className = isNote ? 'hl hl-note' : 'hl';
+        // Which entry this mark belongs to, so clicking it can find the
+        // highlight to remove without re-matching the text against storage.
+        if (typeof hlIndex === 'number') mark.dataset.hl = String(hlIndex);
         target.parentNode.insertBefore(mark, target);
         mark.appendChild(target);
     });
@@ -1222,11 +1231,14 @@ function splitText(node, at) {
 function applyHighlights(storyId) {
     const container = document.getElementById('chapter-content');
     if (!container) return 0;
-    const mine = storyHighlights.filter(h => h.story === storyId);
-    if (!mine.length) return 0;
 
     let applied = 0;
-    mine.forEach((h) => {
+    // Walked with the storage index rather than a filtered copy: that index is
+    // what gets stamped on each mark, and clicking one looks up that same
+    // array. A filtered position would point at the wrong highlight as soon as
+    // any other story's entry moved.
+    storyHighlights.forEach((h, index) => {
+        if (h.story !== storyId) return;
         try {
             // Rebuilt each time: marking splits text nodes, so the next
             // passage has to be found against whatever is on screen now.
@@ -1234,7 +1246,7 @@ function applyHighlights(storyId) {
             const at = locateIndices(map, h);
             if (!at) return;
             const range = rangeFromRaw(map, map.normToRaw[at.start], map.normToRaw[at.end - 1] + 1);
-            if (range && wrapRange(range, !!h.note)) applied++;
+            if (range && wrapRange(range, !!h.note, index)) applied++;
         } catch (e) {
             // A mark that cannot be placed is skipped, never fatal.
         }
@@ -1242,53 +1254,155 @@ function applyHighlights(storyId) {
     return applied;
 }
 
+// Every mutation after the first one goes through here. Marks are rebuilt from
+// storage rather than patched in place, so the stamped indices can never drift
+// out of step with the array -- and unwrapping puts the text nodes that
+// splitText chopped back together, which is what lets the next lookup match.
+function reRenderMarks() {
+    const container = document.getElementById('chapter-content');
+    if (!container) return 0;
+    container.querySelectorAll('mark.hl').forEach((mark) => {
+        const parent = mark.parentNode;
+        if (!parent) return;
+        while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
+        parent.removeChild(mark);
+    });
+    container.normalize();
+    return applyHighlights(currentBookId);
+}
+
 // --- The selection bar ---
-let pendingSelection = null;
+// Two things were wrong with this. Selecting text raised the bar only some of
+// the time, and a highlight could not be taken back off once it was on.
+//
+// The raising: a touch selection fires compatibility mouse events *after*
+// touchend, so a mousedown used to land on the freshly shown bar and take it
+// straight back down; and scroll -- a pixel of drift while a finger is held,
+// or the browser following a selection past the fold -- hid it too. So
+// selectionchange does the finding now, because it is the one event covering
+// mouse, touch, double-click, triple-click and keyboard alike; pointer events
+// only dismiss; and scroll carries the bar along instead of killing it.
+//
+// The undo: clicking a mark opens the same bar in a different dress, with
+// Remove where Highlight was. That is the shape Hypothesis, Medium and Apple
+// Books all use -- select to add, click what you made to take it back.
+
+let pendingSelection = null;      // a fresh selection waiting for an action
+let activeHighlightIndex = null;  // ...or the index of the mark being acted on
+let lastTouchAt = 0;
+let selectRaf = 0;
+let scrollRaf = 0;
+
+const barEl = () => document.getElementById('sel-bar');
 
 const barContains = (el) => {
-    const bar = document.getElementById('sel-bar');
+    const bar = barEl();
     return !!(bar && el && bar.contains && bar.contains(el));
 };
 
-function hideSelectionBar() {
-    const bar = document.getElementById('sel-bar');
-    if (!bar) return;
-    bar.hidden = true;
+// Which face the bar wears follows from whether it is acting on a mark that
+// already exists. Against one, Remove takes Highlight's place and Note grows a
+// verb, because you are changing a note rather than making one -- and the note
+// it already has is loaded in, so it can be edited instead of retyped.
+function syncBarMode() {
+    const highlight = document.getElementById('sel-highlight');
+    const remove = document.getElementById('sel-remove');
+    const note = document.getElementById('sel-note');
+    const box = document.getElementById('sel-note-text');
     const actions = document.getElementById('sel-actions');
     const form = document.getElementById('sel-note-form');
+    const entry = activeHighlightIndex !== null ? storyHighlights[activeHighlightIndex] : null;
+
     if (actions) actions.hidden = false;
     if (form) form.hidden = true;
-    pendingSelection = null;
+    if (highlight) highlight.hidden = !!entry;
+    if (remove) remove.hidden = !entry;
+    if (note) {
+        const label = entry ? (entry.note ? 'Edit note' : 'Add note') : 'Note';
+        note.innerHTML = '<i class="fa-regular fa-note-sticky"></i> ' + label;
+    }
+    if (box) box.value = entry && entry.note ? entry.note : '';
 }
 
-function showSelectionBar(rect) {
-    const bar = document.getElementById('sel-bar');
+// Dismissing belongs to a pointer going down outside the bar, a completed
+// action, Escape, or the selection scrolling out of reach. It never belongs to
+// selectionchange: collapsing the selection is exactly what pressing a button
+// in the bar does, so a handler that hid on collapse would flicker the bar
+// away before its own click could land.
+function hideSelectionBar() {
+    const bar = barEl();
     if (!bar) return;
-    bar.hidden = false;                    // measured only once it is visible
+    bar.hidden = true;
+    pendingSelection = null;
+    activeHighlightIndex = null;
+    syncBarMode();
+}
+
+function positionBar(rect) {
+    const bar = barEl();
+    if (!bar) return false;
+    // Anchored to nothing: entirely above or below the window, it would only
+    // be pointing at empty space.
+    if (rect.bottom < -4 || rect.top > window.innerHeight + 4) { bar.hidden = true; return false; }
     const w = bar.offsetWidth || 320;
     const h = bar.offsetHeight || 48;
     let top = rect.bottom + 8;
-    if (top + h > window.innerHeight - 8) top = Math.max(8, rect.top - h - 8);
+    if (top + h > window.innerHeight - 8) top = rect.top - h - 8;
+    top = Math.max(8, top);
     let left = rect.left;
-    if (left + w > window.innerWidth - 8) left = Math.max(8, window.innerWidth - w - 8);
+    if (left + w > window.innerWidth - 8) left = window.innerWidth - w - 8;
+    left = Math.max(8, left);
     bar.style.top = Math.round(top) + 'px';
     bar.style.left = Math.round(left) + 'px';
+    return true;
 }
 
-function handleSelectionEnd(e) {
-    if (e && e.target && barContains(e.target)) return;   // the bar's own buttons
-    const sel = window.getSelection ? window.getSelection() : null;
-    if (!sel || !sel.rangeCount || sel.isCollapsed) { hideSelectionBar(); return; }
+function showSelectionBar(rect) {
+    const bar = barEl();
+    if (!bar) return;
+    bar.hidden = false;                    // measured only once it is visible
+    positionBar(rect);
+}
 
+function readSelection() {
+    const sel = window.getSelection ? window.getSelection() : null;
+    if (!sel || !sel.rangeCount || sel.isCollapsed) return null;
     const range = sel.getRangeAt(0);
     const container = document.getElementById('chapter-content');
-    if (!container || !container.contains(range.commonAncestorContainer)) { hideSelectionBar(); return; }
-
+    if (!container || !container.contains(range.commonAncestorContainer)) return null;
     const text = normaliseText(sel.toString());
-    if (text.length < 2) { hideSelectionBar(); return; }
+    if (text.length < 2) return null;
+    return { range: range.cloneRange(), text };
+}
 
-    pendingSelection = { range: range.cloneRange(), text };
-    showSelectionBar(range.getBoundingClientRect());
+// Raising is a pure reading of what is selected right now. It never lowers the
+// bar -- see hideSelectionBar for why that would race with the bar's own
+// buttons.
+function raiseFromSelection() {
+    const found = readSelection();
+    if (!found) return false;
+    if (activeHighlightIndex !== null) {
+        // A fresh selection supersedes whatever mark was being acted on.
+        activeHighlightIndex = null;
+        syncBarMode();
+    }
+    pendingSelection = found;
+    showSelectionBar(found.range.getBoundingClientRect());
+    return true;
+}
+
+// Touch selections are often not committed until after touchend returns, and
+// the compatibility mouse events trail behind that. A tick of deferral -- plus
+// ignoring mouse events that a touch just left behind -- is what stops the bar
+// being raised and immediately lowered again.
+function raiseOrDismiss() {
+    window.setTimeout(() => {
+        if (raiseFromSelection()) return;
+        // Open on a mark rather than on a selection: nothing is selected, but
+        // the bar has a job, so leave it alone.
+        if (activeHighlightIndex !== null) return;
+        hideSelectionBar();
+    }, 0);
 }
 
 function highlightPending(note) {
@@ -1322,25 +1436,133 @@ function highlightPending(note) {
     } else {
         storyHighlights.push(entry);
         saveHighlights();
-        wrapRange(range, !!entry.note);
     }
 
-    hideSelectionBar();
     const sel = window.getSelection ? window.getSelection() : null;
     if (sel) sel.removeAllRanges();
+    hideSelectionBar();
+    reRenderMarks();
+    renderHighlights();
     return true;
 }
 
-document.addEventListener('mouseup', handleSelectionEnd);
-document.addEventListener('touchend', handleSelectionEnd);
-document.addEventListener('mousedown', (e) => {
+function saveNoteForActive(note) {
+    if (activeHighlightIndex === null) return false;
+    const entry = storyHighlights[activeHighlightIndex];
+    if (!entry) return false;
+    const value = normaliseText(note);
+    if (value) entry.note = value;
+    else delete entry.note;              // emptying the box takes the note off
+    saveHighlights();
+    hideSelectionBar();
+    reRenderMarks();
+    renderHighlights();
+    return true;
+}
+
+function removeActiveHighlight() {
+    if (activeHighlightIndex === null) return false;
+    if (!storyHighlights[activeHighlightIndex]) return false;
+    storyHighlights.splice(activeHighlightIndex, 1);
+    saveHighlights();
+    hideSelectionBar();
+    reRenderMarks();
+    renderHighlights();
+    return true;
+}
+
+// A selection is found, never announced: this only ever raises the bar.
+document.addEventListener('selectionchange', () => {
+    const el = document.activeElement;
+    if (el && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT')) return;
+    if (selectRaf) return;
+    selectRaf = window.requestAnimationFrame(() => {
+        selectRaf = 0;
+        raiseFromSelection();
+    });
+});
+
+document.addEventListener('mouseup', (e) => {
+    if (e && e.target && barContains(e.target)) return;
+    raiseOrDismiss();
+});
+
+document.addEventListener('touchend', (e) => {
+    lastTouchAt = Date.now();
+    if (e && e.target && barContains(e.target)) return;
+    raiseOrDismiss();
+}, { passive: true });
+
+document.addEventListener('touchstart', (e) => {
+    lastTouchAt = Date.now();
     if (e && e.target && barContains(e.target)) return;
     hideSelectionBar();
+}, { passive: true });
+
+document.addEventListener('mousedown', (e) => {
+    if (e && e.target && barContains(e.target)) return;
+    // The mouse event a touch leaves behind, not a person: it arrives just
+    // after touchend, which is where the bar has only just been raised.
+    if (Date.now() - lastTouchAt < 700) return;
+    hideSelectionBar();
 });
-window.addEventListener('scroll', hideSelectionBar);
+
+document.addEventListener('keydown', (e) => {
+    if (e && e.key === 'Escape') hideSelectionBar();
+});
+
+// Pressing a control in the bar must not clear the selection it is about to
+// use, nor let focus jump away mid-form.
+const selBarEl = barEl();
+if (selBarEl) selBarEl.addEventListener('mousedown', (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+});
+
+// Following the selection beats dropping out: a finger drifting a pixel while
+// it holds used to take the bar with it, and a selection running past the fold
+// used to vanish the moment the browser followed it down.
+window.addEventListener('scroll', () => {
+    const bar = barEl();
+    if (!bar || bar.hidden) return;
+    if (scrollRaf) window.cancelAnimationFrame(scrollRaf);
+    scrollRaf = window.requestAnimationFrame(() => {
+        scrollRaf = 0;
+        if (bar.contains(document.activeElement)) return;   // note box is in use
+        if (activeHighlightIndex !== null) {
+            const mark = document.querySelector('mark.hl[data-hl="' + activeHighlightIndex + '"]');
+            if (!mark) { hideSelectionBar(); return; }
+            positionBar(mark.getBoundingClientRect());
+            return;
+        }
+        const sel = window.getSelection ? window.getSelection() : null;
+        if (!sel || !sel.rangeCount || sel.isCollapsed) { hideSelectionBar(); return; }
+        positionBar(sel.getRangeAt(0).getBoundingClientRect());
+    });
+}, { passive: true });
+
+// Clicking a mark the reader already made.
+document.addEventListener('click', (e) => {
+    const target = e && e.target;
+    const mark = target && target.closest ? target.closest('mark.hl') : null;
+    if (!mark) return;
+    if (e.detail > 1) return;                    // a double-click wants the word
+    if (readSelection()) return;                 // ...so does a drag onto it
+    const index = Number(mark.dataset.hl);
+    if (!Number.isFinite(index) || !storyHighlights[index]) return;
+    activeHighlightIndex = index;
+    pendingSelection = null;
+    syncBarMode();
+    showSelectionBar(mark.getBoundingClientRect());
+});
 
 const selHighlightBtn = document.getElementById('sel-highlight');
-if (selHighlightBtn) selHighlightBtn.addEventListener('click', () => highlightPending(''));
+if (selHighlightBtn) selHighlightBtn.addEventListener('click', () => {
+    if (activeHighlightIndex !== null) return;
+    highlightPending('');
+});
+
+const selRemoveBtn = document.getElementById('sel-remove');
+if (selRemoveBtn) selRemoveBtn.addEventListener('click', removeActiveHighlight);
 
 const selNoteBtn = document.getElementById('sel-note');
 if (selNoteBtn) selNoteBtn.addEventListener('click', () => {
@@ -1364,7 +1586,11 @@ const selNoteForm = document.getElementById('sel-note-form');
 if (selNoteForm) selNoteForm.addEventListener('submit', (e) => {
     if (e && e.preventDefault) e.preventDefault();
     const box = document.getElementById('sel-note-text');
-    if (highlightPending(box ? box.value : '') && box) box.value = '';
+    const value = box ? box.value : '';
+    const done = activeHighlightIndex !== null
+        ? saveNoteForActive(value)
+        : highlightPending(value);
+    if (done && box) box.value = '';
     return false;
 });
 

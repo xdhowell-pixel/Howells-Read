@@ -506,16 +506,26 @@ body.dark-mode .rs-panel { background: #151212; }
 .sel-form-actions { display: flex; gap: 0.4rem; }
 
 /* --- The marks themselves ---
-   The browser default is yellow on black, which belongs to no palette here. */
+   The browser default is yellow on black, which belongs to no palette here.
+   A mark is a control as much as a display: clicking one opens the bar to
+   remove it or change its note, so the cursor has to say so and the tint has
+   to lift on hover the way the rest of the site does. */
 .story-content mark.hl {
     background: rgba(217, 180, 90, 0.42); color: inherit;
     padding: 0.05em 0.1em; border-radius: 1px;
+    cursor: pointer; transition: background-color 0.2s ease;
 }
+.story-content mark.hl:hover { background: rgba(217, 180, 90, 0.68); }
 .story-content mark.hl.hl-note {
     background: rgba(217, 180, 90, 0.55);
     box-shadow: inset 0 -2px 0 var(--primary-color);
 }
 body.dark-mode .story-content mark.hl { background: rgba(217, 180, 90, 0.32); }
+body.dark-mode .story-content mark.hl:hover { background: rgba(217, 180, 90, 0.5); }
+
+/* In the bar's new-selection dress Highlight leads; against an existing mark
+   Remove takes its place and wears the crimson it always meant. */
+.sel-remove { color: var(--primary-color); border-color: var(--primary-color); }
 
 /* --- Marginalia list --- */
 .panel-wide { grid-column: 1 / -1; }
