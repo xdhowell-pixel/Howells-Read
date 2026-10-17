@@ -632,12 +632,11 @@ function updateReadingProgress() {
     const scrolled = window.scrollY || 0;
     const start = scrolled + view.getBoundingClientRect().top;
     const end = start + view.offsetHeight - window.innerHeight;
-    const p = end <= start ? 1 : Math.min(1, Math.max(0, (scrolled - start) / (end - start)));
-    const prev = readingProgress[currentBookId] || 0;
-    if (p > prev + 0.01) {
-        readingProgress[currentBookId] = p;
-        saveProgress();
-    }
+    const within = end <= start ? 1 : Math.min(1, Math.max(0, (scrolled - start) / (end - start)));
+    // How far through the *page* this is, not the story: the page module puts
+    // it together with the page number, so a story read in pages still knows
+    // where it got to.
+    writePageProgress(within);
 }
 window.addEventListener('scroll', updateReadingProgress, { passive: true });
 window.addEventListener('beforeunload', saveProgress);
@@ -952,6 +951,138 @@ function setStoryMeta(words) {
     el.textContent = `${words.toLocaleString()} words · about ${minutes} min read`;
 }
 
+// --- Paging ---
+// One title in here runs to 174,000 words, which is not a page, it is a scroll
+// someone has to survive. So the text is cut into pages of about 500 words,
+// at a paragraph boundary wherever possible, and handed over one at a time.
+// Cutting at a word count rather than at a viewport is the point: change the
+// type size or the brightness and the words move, but the page does not, so
+// "Page 4 of 12" is still true while it is on screen.
+const PAGE_WORDS = 500;
+const storyPages = new Map();   // bookId -> array of pages, each an array of paragraphs
+let currentPage = 0;
+
+function paginate(paragraphs) {
+    const pages = [];
+    let page = [];
+    let words = 0;
+    paragraphs.forEach((p) => {
+        const n = p.split(/\s+/).length;
+        // A single paragraph already past the target gets a page to itself
+        // rather than being cut mid-sentence.
+        if (page.length && words + n > PAGE_WORDS) {
+            pages.push(page);
+            page = [];
+            words = 0;
+        }
+        page.push(p);
+        words += n;
+    });
+    if (page.length) pages.push(page);
+    return pages;
+}
+
+// Where a reader left off. A finished story starts over, which is what the
+// "Read Again" button has always promised.
+function resumePage(bookId) {
+    const pages = storyPages.get(bookId);
+    if (!pages || pages.length <= 1) return 0;
+    const p = readingProgress[bookId];
+    if (p === undefined || p >= FINISH_LINE) return 0;
+    return Math.min(pages.length - 1, Math.max(0, Math.floor(p * pages.length)));
+}
+
+// Progress is a share of the whole story, not of the screen, so "Continue"
+// lands on the page that was actually being read.
+function writePageProgress(fraction) {
+    if (currentBookId === null) return;
+    const pages = storyPages.get(currentBookId);
+    const total = pages ? pages.length : 1;
+    const overall = total <= 1 ? fraction : (currentPage + fraction) / total;
+    const prev = readingProgress[currentBookId] || 0;
+    if (overall > prev + 0.01) {
+        readingProgress[currentBookId] = Math.min(1, overall);
+        saveProgress();
+    }
+}
+
+// Takes the id of the story the pages belong to rather than reading whichever
+// story happens to be current: loadStoryText() calls this for whichever book
+// it was handed, and if that is not the one on screen the nav must not be
+// driven by the wrong story's page count.
+function updatePageNav(bookId) {
+    const nav = document.getElementById('page-nav');
+    if (!nav) return;
+    const pages = storyPages.get(bookId === undefined ? currentBookId : bookId);
+    const total = pages ? pages.length : 0;
+    // A story that fits on one page has nothing to turn, so it says nothing.
+    if (total <= 1) { nav.hidden = true; return; }
+    nav.hidden = false;
+
+    const count = document.getElementById('page-count');
+    if (count) count.textContent = 'Page ' + (currentPage + 1) + ' of ' + total;
+
+    const prev = document.getElementById('page-prev');
+    if (prev) prev.disabled = currentPage === 0;
+
+    const next = document.getElementById('page-next');
+    if (next) {
+        const last = currentPage >= total - 1;
+        next.disabled = last;
+        next.setAttribute('aria-disabled', String(last));
+        next.innerHTML = last
+            ? '<i class="fa-solid fa-feather-pointed"></i> The end'
+            : 'Next <i class="fa-solid fa-chevron-right"></i>';
+    }
+}
+
+function showPage(bookId, index, instant) {
+    const pages = storyPages.get(bookId);
+    const container = document.getElementById('chapter-content');
+    if (!container) return;
+    if (!pages || !pages.length) { updatePageNav(bookId); return; }
+
+    currentPage = Math.min(Math.max(index, 0), pages.length - 1);
+    container.innerHTML = pages[currentPage]
+        .map((p) => '<p>' + escapeHtml(p) + '</p>').join('');
+
+    // The cover is the story's title plate, not part of every page: leaving it
+    // in place would put 450px of artwork above the text on each turn and make
+    // every page a scroll before the reading starts.
+    const cover = document.getElementById('story-image');
+    if (cover) cover.style.display = pages.length > 1 && currentPage > 0 ? 'none' : '';
+
+    // "The Complete Text" is a fair heading for a story that arrives in one
+    // piece, but not for page three of five. The paged story gets a running
+    // head instead, so the reader can see where they are without looking down.
+    const heading = document.getElementById('chapter-title');
+    if (heading && pages.length > 1) {
+        heading.textContent = 'Page ' + (currentPage + 1) + ' of ' + pages.length;
+    }
+
+    updatePageNav(bookId);
+    // Highlights are matched against the page on screen, so they are laid
+    // down again here and simply do not apply to pages not being shown.
+    applyHighlights(bookId);
+    window.scrollTo({ top: 0, behavior: instant ? 'auto' : 'smooth' });
+    // Written from the page index alone: the scroll position still belongs to
+    // the page just left, and reading it now would credit progress that has
+    // not been reached yet.
+    writePageProgress(0);
+    // The top bar reads the page too, and a page turn is not a scroll.
+    updateTopProgressBar();
+}
+
+// False at either end, so the caller can leave the key to the browser.
+function turnPage(delta) {
+    const pages = storyPages.get(currentBookId);
+    if (!pages || pages.length <= 1) return false;
+    const next = currentPage + delta;
+    if (next < 0 || next > pages.length - 1) return false;
+    showPage(currentBookId, next);
+    return true;
+}
+
 async function loadStoryText(book) {
     const container = document.getElementById('chapter-content');
     const requestId = ++textRequest;
@@ -961,6 +1092,8 @@ async function loadStoryText(book) {
         container.innerHTML =
             `<p>${escapeHtml(book.synopsis)}</p><p class="text-note">${escapeHtml(COPYRIGHT_NOTE)}</p>`;
         setStoryMeta(0);
+        storyPages.delete(book.id);
+        updatePageNav(book.id);
         applyHighlights(book.id);
         return;
     }
@@ -978,14 +1111,18 @@ async function loadStoryText(book) {
         const paragraphs = raw.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
         const words = paragraphs.join(' ').split(/\s+/).length;
 
-        container.innerHTML = paragraphs.map(p => `<p>${escapeHtml(p)}</p>`).join('');
+        // Paged rather than poured into the column in one piece. Reopening a
+        // story lands on the page the reader left, not back at the top.
+        storyPages.set(book.id, paginate(paragraphs));
         setStoryMeta(words);
-        applyHighlights(book.id);
+        showPage(book.id, resumePage(book.id), true);
     } catch (error) {
         if (requestId !== textRequest) return;
         container.innerHTML =
             `<p>${escapeHtml(book.synopsis)}</p><p class="text-note">The full text could not be loaded. Please try again.</p>`;
         setStoryMeta(0);
+        storyPages.delete(book.id);
+        updatePageNav(book.id);
         applyHighlights(book.id);
     }
 }
@@ -1416,6 +1553,10 @@ function highlightPending(note) {
     const rawEnd = rawOffsetOf(map, range.endContainer, range.endOffset);
     const entry = {
         story: currentBookId,
+        // Which page it was taken from. The passage is matched back by its
+        // own words rather than by this, but knowing the page means the
+        // dashboard can open a story where the note actually is.
+        page: currentPage,
         text,
         prefix: normaliseText(map.raw.slice(Math.max(0, rawStart - 48), rawStart)),
         suffix: normaliseText(map.raw.slice(rawEnd, rawEnd + 48)),
@@ -1697,19 +1838,77 @@ function handleReaderShortcut(e) {
     if (key === '-' || key === '_') { document.getElementById('rs-dec').click(); return stop(); }
     if (key === ']') { nextStory(); return true; }
     if (key === '[') { prevStory(); return true; }
+    // Turning pages, not stories: square brackets move between titles, the
+    // arrow keys move through the one you are reading.
+    if (key === 'ArrowRight') return turnPage(1) ? stop() : false;
+    if (key === 'ArrowLeft') return turnPage(-1) ? stop() : false;
 
     return false;
 }
 
 document.addEventListener('keydown', handleReaderShortcut);
 
+// --- Turning pages ---
+// A sideways swipe turns the page, the way it does on a phone. It has to be a
+// *clear* sideways swipe: a finger held down to select a passage, or dragged
+// up and down to scroll, must never turn the page by mistake.
+const pagePrevBtn = document.getElementById('page-prev');
+if (pagePrevBtn) pagePrevBtn.addEventListener('click', () => turnPage(-1));
+
+const pageNextBtn = document.getElementById('page-next');
+if (pageNextBtn) pageNextBtn.addEventListener('click', () => turnPage(1));
+
+let swipeFrom = null;
+
+document.addEventListener('touchstart', (e) => {
+    const touch = e && e.touches && e.touches[0];
+    swipeFrom = touch ? { x: touch.clientX, y: touch.clientY } : null;
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+    if (!swipeFrom) return;
+    const touch = e && e.changedTouches && e.changedTouches[0];
+    const from = swipeFrom;
+    swipeFrom = null;
+    if (!touch) return;
+
+    const dx = touch.clientX - from.x;
+    const dy = touch.clientY - from.y;
+    if (Math.abs(dx) < 70 || Math.abs(dy) > 40) return;
+
+    // Something is selected, so this was a gesture made on text.
+    const sel = window.getSelection ? window.getSelection() : null;
+    if (sel && !sel.isCollapsed) return;
+
+    const view = document.getElementById('reader-view');
+    if (!view || view.classList.contains('hidden')) return;
+
+    if (dx < 0) turnPage(1); else turnPage(-1);
+}, { passive: true });
+
 // --- Progress Bar ---
-window.addEventListener('scroll', () => {
+// Now that a story arrives a page at a time, a scrollbar reading across the
+// top would sit near full almost everywhere and then snap back. In the reader
+// it shows how much of the story has been got through instead; everywhere
+// else it still reads the page as it always did.
+function updateTopProgressBar() {
+    const bar = document.getElementById('progress-bar');
+    if (!bar) return;
+    const view = document.getElementById('reader-view');
+    if (view && !view.classList.contains('hidden')) {
+        const pages = storyPages.get(currentBookId);
+        const total = pages ? pages.length : 1;
+        if (total > 1) {
+            bar.style.width = Math.round((currentPage / total) * 100) + '%';
+            return;
+        }
+    }
     const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
     const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
     const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
-    document.getElementById('progress-bar').style.width = scrolled + '%';
-});
+    bar.style.width = scrolled + '%';
+}
+window.addEventListener('scroll', updateTopProgressBar, { passive: true });
 
 // --- Mendo Dynamic Background ---
 function getDominantColor(imageUrl, callback) {

@@ -215,6 +215,16 @@
                     <div id="chapter-content">
                         <p>The complete story text will be added shortly.</p>
                     </div>
+
+                    <nav class="page-nav" id="page-nav" aria-label="Page navigation" hidden>
+                        <button type="button" class="page-btn" id="page-prev">
+                            <i class="fa-solid fa-chevron-left"></i> Back
+                        </button>
+                        <span class="page-count" id="page-count" aria-live="polite" aria-atomic="true"></span>
+                        <button type="button" class="page-btn page-btn-next" id="page-next">
+                            Next <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </nav>
                 </div>
 
                 <div class="reader-footer">
@@ -322,6 +332,7 @@
         <p class="footer-note">
             Every story here is either in the public domain or shown as a synopsis only.
             Press <kbd>/</kbd> to search, <kbd>[</kbd> and <kbd>]</kbd> to move between stories,
+            <kbd>&larr;</kbd> and <kbd>&rarr;</kbd> to turn the pages, and
             <kbd>+</kbd> and <kbd>&minus;</kbd> to set the text size.
         </p>
     </footer>

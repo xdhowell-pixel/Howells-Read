@@ -690,6 +690,56 @@ body:not(.dark-mode) .story-img { box-shadow: 0 10px 24px -8px rgba(60,45,30,0.4
 body:not(.dark-mode) .story-content h3 { color: var(--primary-color); }
 body:not(.dark-mode) .story-content p { color: #33302a; text-shadow: none; }
 
+/* --- Page navigation ---
+   A story is handed over a page at a time instead of as one endless column:
+   500 words, cut at a paragraph, so a page is the same amount of reading
+   whatever the reader has set their type to. The rule above the controls is
+   the double rule the header closes with, which makes the break read as a
+   deliberate stopping point rather than a scrollbar running out. */
+/* A story that fits on one page has nothing to turn, and the nav has to
+   disappear completely when it has. It cannot rely on the browser's own
+   [hidden] rule: the site-wide `nav` selector above is an author rule, and
+   author rules outrank the user-agent stylesheet whatever the specificity,
+   so the bare `nav { display: flex }` would keep this on screen. Saying
+   display: none here in the same stylesheet is what actually turns it off --
+   the same reason .sel-bar and .sel-actions above are guarded with
+   :not([hidden]) rather than left to the default. */
+.page-nav[hidden] { display: none; }
+
+.page-nav:not([hidden]) {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; margin-top: 2.8rem; padding-top: 1.5rem;
+    border-top: 3px double rgba(255, 255, 255, 0.32);
+}
+body:not(.dark-mode) .page-nav:not([hidden]) { border-top-color: rgba(51, 48, 42, 0.22); }
+
+/* Same recipe as the outline buttons already sitting on this panel, so the
+   controls belong to the page rather than looking bolted onto it. */
+.page-btn {
+    font-family: var(--font-display); font-weight: 600; font-size: 0.66rem;
+    letter-spacing: 1.8px; text-transform: uppercase;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.72rem 1.05rem; cursor: pointer; white-space: nowrap;
+    background: transparent; color: var(--primary-color);
+    border: 2px solid var(--accent-color); border-radius: 0; box-shadow: none;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+.page-btn:hover:not(:disabled) {
+    background: var(--primary-color); border-color: var(--primary-color); color: var(--surface-color);
+}
+.page-btn:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+/* The end of the book has no next page, so the control says so and stops
+   pretending there is one. */
+.page-btn:disabled { opacity: 0.4; cursor: default; }
+
+.page-count {
+    font-family: var(--font-display); font-weight: 600;
+    font-size: 0.68rem; letter-spacing: 2.4px; text-transform: uppercase;
+    color: var(--text-muted); font-variant-numeric: tabular-nums;
+}
+body.dark-mode .page-count { color: rgba(255, 255, 255, 0.6); }
+
+
 /* --- Story meta / loading / copyright note --- */
 .story-meta { margin-top: 0.7rem; font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.62); }
 .loading-line { font-style: italic; color: rgba(255,255,255,0.7) !important; }
