@@ -16,6 +16,8 @@
     <meta name="twitter:card" content="summary_large_image">
 
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="manifest" href="manifest.webmanifest">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -62,6 +64,13 @@
     </header>
 
     <main>
+        <!-- A note rather than a warning: the service worker keeps serving
+             saved copies, so being offline does not stop anyone reading. -->
+        <div class="offline-banner hidden" id="offline-banner" role="status">
+            <i class="fa-solid fa-wifi" aria-hidden="true"></i>
+            <span>You&rsquo;re offline &mdash; reading the copies saved on this device.</span>
+        </div>
+
         <!-- Library View -->
         <section id="library-view">
             <div class="hero-section">
@@ -114,7 +123,22 @@
             <div class="genre-filters" id="genre-filters"></div>
 
             <div class="results-count" id="results-count">Showing 42 books</div>
-            
+
+            <!-- Everything on this device, for reading where there is no
+                 signal. Appended under the count rather than put in the
+                 toolbar, which is search and sort's own business. -->
+            <div class="offline-row" id="offline-row">
+                <button type="button" class="offline-btn" id="offline-btn"
+                        onclick="toggleOfflineLibrary()">
+                    <i class="fa-solid fa-download" id="offline-icon" aria-hidden="true"></i>
+                    <span id="offline-label">Take it all offline</span>
+                </button>
+                <span class="offline-status" id="offline-status" aria-live="polite"></span>
+                <div class="offline-track hidden" id="offline-track" aria-hidden="true">
+                    <i class="offline-fill" id="offline-fill"></i>
+                </div>
+            </div>
+
             <div class="book-grid" id="book-grid"></div>
         </section>
 

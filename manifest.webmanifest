@@ -1,0 +1,31 @@
+{
+    "name": "Howell Reads — Curated Storybook Collection",
+    "short_name": "Howell Reads",
+    "description": "A curated library of 42 classic stories. Read freely, collect endlessly. Works without a connection once it has been opened.",
+    "lang": "en",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#fdfaf2",
+    "theme_color": "#8b2c2c",
+    "icons": [
+        {
+            "src": "icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

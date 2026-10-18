@@ -250,6 +250,59 @@ main { width: 100%; max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; flex:
 }
 .results-count::after { background: linear-gradient(to left, transparent, var(--rule-color)); }
 
+/* --- Offline ------------------------------------------------------------
+   With a service worker in front of the site, losing the connection is not a
+   fault: the words are still here, they are just coming off the device rather
+   than off the network. So the banner says where the text is coming from
+   instead of apologising for being unreachable. */
+.offline-banner {
+    display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    margin: -1rem 0 2rem; padding: 0.75rem 1.1rem;
+    border: 1px solid var(--accent-color);
+    background: rgba(116, 87, 23, 0.07);
+    font-family: var(--font-display); font-weight: 600; font-size: 0.66rem;
+    letter-spacing: 2.2px; text-transform: uppercase; color: var(--accent-color);
+}
+body.dark-mode .offline-banner { background: rgba(217, 180, 90, 0.1); }
+
+/* Keeping the whole library on the device — for a phone on a bus, a school
+   machine behind a filter, or a classroom with the wifi switched off. */
+.offline-row {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+    gap: 0.7rem 1rem; margin: -1rem 0 2.25rem;
+}
+.offline-btn {
+    display: inline-flex; align-items: center; gap: 0.55rem;
+    font-family: var(--font-display); font-weight: 600; font-size: 0.66rem;
+    letter-spacing: 1.8px; text-transform: uppercase;
+    padding: 0.7rem 1.1rem; cursor: pointer;
+    background: transparent; color: var(--primary-color);
+    border: 2px solid var(--accent-color); border-radius: 0; box-shadow: none;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+.offline-btn:hover:not(:disabled) {
+    background: var(--primary-color); border-color: var(--primary-color); color: var(--surface-color);
+}
+.offline-btn:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+.offline-btn:disabled { opacity: 0.5; cursor: default; }
+.offline-btn.is-saved { border-color: var(--primary-color); }
+
+.offline-status {
+    font-family: var(--font-display); font-weight: 600; font-size: 0.64rem;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted);
+    font-variant-numeric: tabular-nums; text-align: center;
+}
+.offline-status:empty { display: none; }
+
+.offline-track {
+    flex: 1 1 220px; max-width: 360px; height: 7px;
+    background: var(--rule-color); border: 1px solid var(--border-color);
+}
+.offline-fill {
+    display: block; height: 100%; width: 0;
+    background: var(--primary-color); transition: width 0.25s linear;
+}
+
 /* --- Book Grid --- */
 .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 2.75rem 2.5rem; perspective: 1000px; padding-bottom: 1rem; }
 

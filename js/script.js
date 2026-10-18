@@ -1982,6 +1982,241 @@ function openBook(id, cardElement) {
     }, 600);
 }
 
+// --- Offline ---------------------------------------------------------------
+// A service worker stands in front of the site so that, once the site has been
+// opened with a connection, it opens without one. Everything here is
+// best-effort by design: a browser without a secure context, a cache that
+// refuses a file, or a device short of room all leave the site working
+// exactly as it did before, which is why none of it is fatal.
+
+const OFFLINE_LIBRARY_CACHE = 'howell-reads-library-v1';
+// Room the device is asked to have spare. The library itself is about 11 MB.
+const OFFLINE_FLOOR = 20 * 1024 * 1024;
+// Fetching 74 files one after the other takes long enough that the button
+// looks stuck; a few at a time keeps the bar moving without stampeding the
+// connection either.
+const OFFLINE_BATCH = 6;
+
+let offlineBusy = false;
+let offlineSaved = 0;
+let offlineTotal = 0;
+
+const offlineEl = (id) => document.getElementById(id);
+const offlineUrl = (path) => new URL(path, location.href).href;
+
+// Every cover and every story text. Synopses are already in the page itself,
+// so only the files that are fetched on demand need keeping.
+function offlineAssets() {
+    const seen = new Set();
+    const list = [];
+    allBooks.forEach((book) => {
+        [book.image, book.text].forEach((path) => {
+            if (path && !seen.has(path)) {
+                seen.add(path);
+                list.push(path);
+            }
+        });
+    });
+    return list;
+}
+
+function setOfflineState(saved, total) {
+    const btn = offlineEl('offline-btn');
+    const label = offlineEl('offline-label');
+    const status = offlineEl('offline-status');
+    const icon = offlineEl('offline-icon');
+    if (!btn || !label || !status || !icon) return;
+
+    offlineSaved = saved;
+    offlineTotal = total;
+
+    if (total && saved === total) {
+        btn.classList.add('is-saved');
+        icon.className = 'fa-solid fa-circle-check';
+        label.textContent = 'Remove the download';
+        status.textContent = 'All ' + total + ' files saved';
+    } else {
+        btn.classList.remove('is-saved');
+        icon.className = 'fa-solid fa-download';
+        label.textContent = 'Take it all offline';
+        status.textContent = saved ? saved + ' of ' + total + ' saved' : '';
+    }
+}
+
+async function refreshOfflineLibraryState() {
+    const btn = offlineEl('offline-btn');
+    if (!btn) return;
+
+    // Offline reading needs a secure context: without HTTPS a browser will
+    // not run a service worker at all, so the honest answer is a disabled
+    // button — not one that downloads 74 files nothing would be able to
+    // serve back when the connection goes.
+    if (!window.isSecureContext || typeof caches === 'undefined') {
+        btn.disabled = true;
+        const label = offlineEl('offline-label');
+        if (label) label.textContent = 'Offline saving unavailable';
+        return;
+    }
+
+    const assets = offlineAssets();
+    if (!assets.length) {
+        btn.disabled = true;
+        return;
+    }
+
+    const cache = await caches.open(OFFLINE_LIBRARY_CACHE);
+    let saved = 0;
+    for (const path of assets) {
+        if (await cache.match(offlineUrl(path))) saved++;
+    }
+    // A download in progress owns the label; reading it back mid-run would
+    // wipe the progress readout the button is in the middle of showing.
+    if (offlineBusy) return;
+    setOfflineState(saved, assets.length);
+}
+
+async function putOffline(cache, path) {
+    try {
+        const res = await fetch(path, { cache: 'reload' });
+        if (!res.ok) return false;
+        await cache.put(offlineUrl(path), res);
+        return true;
+    } catch (err) {
+        // Offline partway through, or the file is not there. Either way the
+        // rest of the batch carries on without it.
+        return false;
+    }
+}
+
+async function saveOfflineLibrary() {
+    const btn = offlineEl('offline-btn');
+    const label = offlineEl('offline-label');
+    const status = offlineEl('offline-status');
+    const track = offlineEl('offline-track');
+    const fill = offlineEl('offline-fill');
+    const assets = offlineAssets();
+
+    // Ask for the room before taking it: if the browser is honest about being
+    // nearly full, a bar that stalls at 60% explains nothing, while a sentence
+    // explaining it explains everything.
+    if (navigator.storage && navigator.storage.estimate) {
+        try {
+            const est = await navigator.storage.estimate();
+            if (est.quota && (est.quota - (est.usage || 0)) < OFFLINE_FLOOR) {
+                status.textContent = 'Not enough room on this device';
+                return;
+            }
+        } catch (err) { /* no estimate, no warning */ }
+    }
+
+    offlineBusy = true;
+    btn.disabled = true;
+    label.textContent = 'Saving…';
+    if (track) track.classList.remove('hidden');
+
+    // Without this the browser may drop the cache at any time to reclaim
+    // space, which would be a strange way to lose a library someone thought
+    // they had saved. Deliberately not awaited: where this needs the reader's
+    // permission it can sit on a prompt indefinitely, and holding the
+    // download open behind a dialog nobody has answered yet would stall it.
+    // Persistence is a bonus; the download is not allowed to depend on it.
+    if (navigator.storage && navigator.storage.persist) {
+        navigator.storage.persist().catch(() => { /* refused, or unsupported */ });
+    }
+
+    const cache = await caches.open(OFFLINE_LIBRARY_CACHE);
+    const todo = [];
+    for (const path of assets) {
+        if (!(await cache.match(offlineUrl(path)))) todo.push(path);
+    }
+
+    let done = assets.length - todo.length;
+    let failed = 0;
+    const paint = () => {
+        if (fill) fill.style.width = Math.round((done / assets.length) * 100) + '%';
+        if (status) status.textContent = done + ' of ' + assets.length;
+    };
+    paint();
+
+    for (let i = 0; i < todo.length; i += OFFLINE_BATCH) {
+        const batch = todo.slice(i, i + OFFLINE_BATCH);
+        const results = await Promise.all(batch.map((path) => putOffline(cache, path)));
+        done += batch.length;
+        failed += results.filter((ok) => !ok).length;
+        paint();
+    }
+
+    offlineBusy = false;
+    btn.disabled = false;
+    if (track) track.classList.add('hidden');
+
+    const saved = assets.length - failed;
+    if (failed === 0) {
+        setOfflineState(saved, assets.length);
+        if (status) status.textContent = 'All ' + assets.length + ' files saved — the whole library reads without a connection';
+    } else {
+        label.textContent = 'Try again';
+        if (status) status.textContent = saved + ' of ' + assets.length + ' saved';
+    }
+}
+
+async function removeOfflineLibrary() {
+    offlineBusy = true;
+    const btn = offlineEl('offline-btn');
+    const status = offlineEl('offline-status');
+    try {
+        await caches.delete(OFFLINE_LIBRARY_CACHE);
+    } catch (err) { /* nothing to delete */ }
+    offlineBusy = false;
+    setOfflineState(0, offlineTotal);
+    if (status) status.textContent = 'Download removed — stories are fetched as you read them';
+}
+
+async function toggleOfflineLibrary() {
+    if (offlineBusy) return;
+    if (typeof caches === 'undefined') return;
+    if (offlineTotal && offlineSaved === offlineTotal) {
+        await removeOfflineLibrary();
+        return;
+    }
+    await saveOfflineLibrary();
+}
+
+// The connection dropping is worth saying out loud, but it is not a fault
+// the reader has to fix: the service worker keeps handing over saved copies.
+function updateOfflineBanner() {
+    const banner = offlineEl('offline-banner');
+    if (!banner) return;
+    banner.classList.toggle('hidden', navigator.onLine !== false);
+}
+
+function initOffline() {
+    updateOfflineBanner();
+
+    // Registered beside the page rather than from "/", so the same build works
+    // served from a domain root and from a sub-path alike. The worker itself
+    // resolves every URL against its own location for the same reason.
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch((err) => {
+            console.warn('Offline support unavailable:', err && err.message);
+        });
+
+        // Ask the worker for the typefaces and the icon font once it is
+        // active. Waiting on `ready` rather than reading `controller` is the
+        // point: on a first visit there is no controller yet, and it is the
+        // first visit that has nothing cached at all.
+        navigator.serviceWorker.ready.then((reg) => {
+            if (reg && reg.active) reg.active.postMessage({ type: 'cache-assets' });
+        }).catch(() => { /* nothing to ask */ });
+    }
+
+    refreshOfflineLibraryState();
+}
+
+window.addEventListener('online', updateOfflineBanner);
+window.addEventListener('offline', updateOfflineBanner);
+window.addEventListener('load', initOffline);
+
 // --- Boot ---
 initializeData();
 
